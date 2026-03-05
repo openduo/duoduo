@@ -61,7 +61,7 @@ duoduo channel acp start
 
 ## How It Works
 
-```
+```text
 You ──► channel.ingress ──► Spine WAL ──► Mailbox ──► Runner (Claude SDK) ──► Response
                                                               │
                                           Cadence ──► Subconscious partitions ──► Memory
@@ -74,7 +74,7 @@ You ──► channel.ingress ──► Spine WAL ──► Mailbox ──► Ru
 
 ## Runtime Layout
 
-```
+```text
 ~/.aladuo/          Runtime state (events, sessions, outbox)
 ~/aladuo/           Kernel — agent's persistent memory and subconscious
   memory/           Dossiers, broadcast board, entity/topic knowledge
@@ -90,10 +90,10 @@ ALADUO_LOG_LEVEL=info           # debug | info | warn | error
 ALADUO_RUNTIME_MODE=yolo        # yolo (host) | container
 ```
 
-## Packages
+## npm Packages
 
 | Package | Description |
-|---------|-------------|
+| ------- | ----------- |
 | [`@openduo/duoduo`](https://www.npmjs.com/package/@openduo/duoduo) | Core runtime + CLI |
 | [`@openduo/channel-feishu`](https://www.npmjs.com/package/@openduo/channel-feishu) | Feishu / Lark gateway |
 | [`@openduo/channel-acp`](https://www.npmjs.com/package/@openduo/channel-acp) | ACP bridge |
@@ -105,4 +105,4 @@ Found a bug? Have a feature request? [Open an issue](https://github.com/openduo/
 
 ## License
 
-Apache 2.0
+Source-available. Free to use. See [openduo.ai](https://openduo.ai) for terms.
