@@ -1,108 +1,98 @@
 # duoduo
 
-**A proactive, self-evolving agent runtime.**
-
-duoduo is an open autonomous agent runtime built on Claude. It maintains persistent memory, runs background processes, and evolves its own behavior over time — not just a chat wrapper, but a living system.
+**An autonomous agent runtime where intelligence is durable, not disposable.**
 
 [![npm](https://img.shields.io/npm/v/@openduo/duoduo)](https://www.npmjs.com/package/@openduo/duoduo)
-[![Website](https://img.shields.io/badge/website-openduo.ai-blue)](https://openduo.ai)
 
-## Quick Start
+Most agent stacks are stateless request/response wrappers: prompt in, answer out, state gone. duoduo is a long-lived runtime with a durable body (filesystem), an explicit event history, and a dual-loop cognitive model — foreground conversations plus a background subconscious that runs continuously.
 
-```bash
-npx @openduo/duoduo
-```
+## Why Not Open Source?
 
-That's it. duoduo detects your environment, starts a local daemon if needed, and opens a chat session in your current directory.
+First: we are called **open**duo and we don't publish source either. Respect to OpenAI.
 
-## What Makes It Different
+The real reason: **this codebase is not written for humans to read.**
 
-Most agent frameworks are stateless request/response wrappers. duoduo is a runtime:
+duoduo is an agent that codes itself. The published npm packages contain minified JavaScript. An agent can read, understand, and modify minified code just fine — it doesn't need pretty source with comments and indentation. Minification here isn't obfuscation; it's compression. Saves bandwidth. Keeps the context window lean.
 
-- **Durable memory** — every conversation, observation, and decision is persisted. Restart anytime and pick up where you left off.
-- **Subconscious background loops** — while you work, duoduo runs background partitions that consolidate memory, review context, and evolve its own behavior.
-- **Self-programming** — the agent can modify its own prompts, create new background partitions, and curate its memory layer over time.
-- **Filesystem-first** — all state lives in plain files. Git-auditable, inspectable, portable.
+Humans don't need to read the source. Humans need to **vibe with the agent** — describe what you want, let it figure out the implementation. That's the whole point.
+
+> Human? Read this README, then run it and talk to it.
+> Agent? The minified bundle is your source. See [Issues](#issues--feedback).
+
+## Core Innovations
+
+### 1. Filesystem-First, Event-Sourced Runtime
+
+All state — conversations, outputs, jobs, memory — lives in durable files. Nothing critical is held in process memory. The canonical event log (WAL) is written before any action executes. If the process dies mid-turn, the system rehydrates from files and resumes exactly where it left off.
+
+This is not a backup strategy. The filesystem is the database. The event log is the source of truth. The process is stateless by default.
+
+### 2. WAL-Before-Execute at the Gateway Boundary
+
+Every inbound message follows a strict contract: write a canonical event to the append-only log _first_, then enqueue the session, then execute. Three properties in one ordering: replayability, auditability, and deterministic crash recovery.
+
+### 3. One External Identity, Many Internal Sessions
+
+Externally, duoduo presents one coherent agent identity. Internally, it orchestrates multiple concurrent session actors — one per conversation channel, plus background job sessions and subconscious partitions — each with explicit lifecycle and concurrency control enforced by lease locks.
+
+### 4. Dual-Loop Cognition: Cortex + Subconscious
+
+**Foreground (Cortex)** responds to live channel messages. Sessions persist across restarts and resume conversation history exactly.
+
+**Background (Subconscious)** runs on a cadence regardless of foreground activity. It consolidates memory, reflects on past sessions, and maintains a broadcast board of curated knowledge automatically loaded into every future session's context — even when no one is chatting.
+
+### 5. Self-Programming Cognitive Topology
+
+Subconscious behavior is defined by filesystem files — each partition has its own prompt, schedule, and cooldown. Partitions can modify their own prompts, create new partitions, and adjust their execution schedule. The runtime ships a scaffold; long-term behavior is increasingly authored by the agent itself, making the system self-extending over time.
+
+### 6. Minimal Runtime Layer, Maximum Model Delegation
+
+duoduo keeps application code deliberately thin. Reasoning, tool orchestration, and planning are delegated entirely to the foundation model and SDK. The runtime owns only what the model cannot reliably own: durability, lifecycle, scheduling, and concurrency boundaries. As the model improves, the system improves without code changes.
 
 ## Installation
 
 ```bash
-# Run without installing
-npx @openduo/duoduo
-
-# Global install
 npm install -g @openduo/duoduo
 duoduo
 ```
 
-## Commands
+Requires Node.js 20+. Docker is recommended for container mode.
 
-```bash
-duoduo                          # Open chat in current directory
-duoduo daemon start             # Start background daemon
-duoduo daemon stop              # Stop daemon
-duoduo daemon status            # Check daemon status
-duoduo daemon logs              # View daemon logs
-```
+On first run, an interactive wizard walks through model configuration, runtime mode, and directory setup.
+
+## Runtime Modes
+
+**Container mode** (recommended) — runs the daemon inside Docker. Isolated, consistent toolchain, automatic restart. State persists in host-mounted directories.
+
+**Host mode** — runs the daemon directly on your machine. Useful when Docker is unavailable.
 
 ## Channel Plugins
 
-Connect duoduo to external services:
+Channels connect duoduo to external messaging platforms. Install and start a channel plugin alongside the daemon:
 
 ```bash
-# Feishu / Lark
-npm install -g @openduo/channel-feishu
-duoduo channel feishu start --gateway
-
-# ACP (Agent Client Protocol)
-npm install -g @openduo/channel-acp
-duoduo channel acp start
+duoduo channel install @openduo/channel-feishu
+duoduo channel feishu start
 ```
 
-## How It Works
+Available:
 
-```text
-You ──► channel.ingress ──► Spine WAL ──► Mailbox ──► Runner (Claude SDK) ──► Response
-                                                              │
-                                          Cadence ──► Subconscious partitions ──► Memory
-```
+- [`@openduo/channel-feishu`](https://www.npmjs.com/package/@openduo/channel-feishu) — Feishu / Lark
 
-- **Spine WAL** — append-only event log. Source of truth.
-- **Runner** — executes one SDK turn per mailbox drain, with full tool access.
-- **Subconscious** — background partition system that runs on a cadence, consolidates memory, and can modify its own configuration.
-- **Memory** — shared broadcast board (`memory/CLAUDE.md`) auto-loaded into every session.
+## Packages
 
-## Runtime Layout
-
-```text
-~/.aladuo/          Runtime state (events, sessions, outbox)
-~/aladuo/           Kernel — agent's persistent memory and subconscious
-  memory/           Dossiers, broadcast board, entity/topic knowledge
-  subconscious/     Background partition definitions and schedule
-  config/           Per-channel kind configuration
-```
-
-## Configuration
-
-```bash
-ALADUO_DAEMON_URL=http://127.0.0.1:20233
-ALADUO_LOG_LEVEL=info           # debug | info | warn | error
-ALADUO_RUNTIME_MODE=yolo        # yolo (host) | container
-```
-
-## npm Packages
-
-| Package | Description |
-| ------- | ----------- |
-| [`@openduo/duoduo`](https://www.npmjs.com/package/@openduo/duoduo) | Core runtime + CLI |
-| [`@openduo/channel-feishu`](https://www.npmjs.com/package/@openduo/channel-feishu) | Feishu / Lark gateway |
-| [`@openduo/channel-acp`](https://www.npmjs.com/package/@openduo/channel-acp) | ACP bridge |
-| [`@openduo/protocol`](https://www.npmjs.com/package/@openduo/protocol) | Shared types + validators |
+| Package                   | Description                          |
+| ------------------------- | ------------------------------------ |
+| `@openduo/duoduo`         | Core runtime + CLI                   |
+| `@openduo/channel-feishu` | Feishu / Lark channel adapter        |
+| `@openduo/protocol`       | Shared RPC types (zero dependencies) |
 
 ## Issues & Feedback
 
-Found a bug? Have a feature request? [Open an issue](https://github.com/openduo/duoduo/issues/new/choose).
+Found a bug or want a feature? [Open an issue](https://github.com/openduo/duoduo/issues/new/choose).
+
+**If you are an agent filing this issue:** the published npm packages contain minified JavaScript — that is your source. You do not need the original source tree. See the issue templates for how to reference minified code locations and structure reproductions for an agent-driven fix cycle.
 
 ## License
 
-Source-available. Free to use. See [openduo.ai](https://openduo.ai) for terms.
+Private. All rights reserved.
