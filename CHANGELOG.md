@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.2.5] - 2026-03-07
+
+### Features
+
+- feat(cli): wire container v2 subcommands into main entry and onboard flow (5319290)
+- feat(cli): add docker-exec helpers for container lifecycle management (4245a13)
+- feat(cli): add duoduo-yaml instance config parser and generator (bcf8ef9)
+
+### Internal
+
+- docs: rewrite README for npm publishing — principles only, no internals (2b4fd26)
+
+### Other
+
+- refactor(cli): rewrite container-command with v2 subcommand dispatch (3b2b8c8)
+- refactor(runtime): update paths resolution and init logic (b8a0874)
+- docs(design): add container instance v2 design doc (56567c9)
+
+
 ## [v0.2.4] - 2026-03-06
 
 ### Bug Fixes
