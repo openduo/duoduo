@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.2.10] - 2026-03-11
+
+### Bug Fixes
+
+- **feishu**: Fix zombie streaming card race — unified notification chains so stream chunks always complete before final output is processed. Introduces content lane (stream + output, strict serial) and hint lane (execution, fire-and-forget) two-lane model.
+- **feishu**: Honor routed workspace in handshake and routing.
+- **feishu**: Detect and handle streaming card 30KB content limit with automatic fallback.
+
+### Features
+
+- **protocol**: Extend runtime info with channel defaults.
+
 ## [v0.2.7] - 2026-03-08
 
 ### Features
