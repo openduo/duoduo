@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.2.11] - 2026-03-11
+
+### Bug Fixes
+
+- **runtime**: Repair Claude runtime settings backfill so upgraded kernels recover from malformed existing `settings.json` env blocks instead of failing during init.
+- **feishu**: Serialize typing/reaction transitions with outbound delivery so transient typing hints do not race or disappear before the final reply path completes.
+
 ## [v0.2.10] - 2026-03-11
 
 ### Bug Fixes
