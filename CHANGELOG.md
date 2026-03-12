@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.2.12] - 2026-03-12
+
+### Bug Fixes
+
+- **runtime**: Stabilize job scheduling state — prevent duplicate spawns and stale cron evaluation.
+- **cli**: Add `command` field to generated `docker-compose.yml` so the container starts correctly.
+- **feishu**: Preserve customer-service copy bindings across restarts and remove deprecated `/cs` commands.
+
+### Features
+
+- **cli**: Read Claude settings (API keys, model config) during onboard flow.
+
 ## [v0.2.11] - 2026-03-11
 
 ### Bug Fixes
