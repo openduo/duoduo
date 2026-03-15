@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.3.0] - 2026-03-15
+
+### Features
+
+- **runner**: Add configurable time-gap session context and upgrade runtime prompt assembly to structured content blocks.
+
+### Bug Fixes
+
+- **runtime**: Split outbox replay bootstrap read/write paths so live appends no longer rebuild replay artifacts on every write.
+- **replay**: Harden session-local cursor fallback and recovery when replay indexes are incomplete or stale.
+
 ## [v0.2.12] - 2026-03-12
 
 ### Bug Fixes
