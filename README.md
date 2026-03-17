@@ -49,6 +49,36 @@ Subconscious behavior is defined by filesystem files — each partition has its 
 
 duoduo keeps application code deliberately thin. Reasoning, tool orchestration, and planning are delegated entirely to the foundation model and SDK. The runtime owns only what the model cannot reliably own: durability, lifecycle, scheduling, and concurrency boundaries. As the model improves, the system improves without code changes.
 
+## Dashboard
+
+duoduo includes a built-in ATC (Air Traffic Control) monitoring panel. Access it at `http://localhost:20233/dashboard` while the daemon is running.
+
+![Duoduo ATC Dashboard](assets/duoduo_dash.jpg)
+
+A single-file, zero-dependency HTML page served directly by the daemon. No build step, no extra port, no framework.
+
+**Header** — cumulative cost, token usage, tool call count, and system health indicator.
+
+**Signal Bar** — compact status indicators for every active entity in the runtime:
+
+| Shape | Meaning |
+| ----- | ------- |
+| ● Circle | Foreground session (Cortex) — live channel connections (Feishu, ACP, stdio) |
+| ■ Square | Cron job (Rhythm) — periodic scheduled tasks |
+| ◆ Diamond | One-shot job — spawned tasks that run once |
+| ✓ / · | Subconscious partition — background cognitive partitions |
+
+| Color | Meaning |
+| ----- | ------- |
+| Green | Actively executing right now |
+| Blue | Standby — idle or last run succeeded |
+| Red | Alert — error or last run failed |
+| Gray | Ended or never run |
+
+Indicators blink when new events arrive for their entity. Hover for details (session key, job schedule, run count, last activity).
+
+**Event Stream** — real-time Spine WAL events with rich rendering: tool calls show human-readable descriptions, agent outputs render inline markdown, job lifecycle events are color-coded. Click outputs to expand full markdown; double-click any event for raw JSON. Auto-follows new events; scroll up to pause, click LIVE to resume.
+
 ## Installation
 
 ```bash

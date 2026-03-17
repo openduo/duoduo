@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.3.2] - 2026-03-18
+
+### Features
+
+- **dashboard**: Single-file ATC monitoring panel served at `GET /dashboard` on the daemon port. Zero dependencies, replaces the previous React+Vite SPA. Signal bar with shape-coded indicators (circles=sessions, squares=cron jobs, diamonds=one-shot jobs), unified color semantics, rich event stream with inline markdown rendering, auto-follow with DOM recycling.
+- **protocol**: Add `system.status` RPC (health, sessions, subconscious playlist) and `spine.tail` RPC (last N events with incremental `after_id` cursor and cross-midnight boundary support).
+- **runner**: Expose `tool_input_delta` in `session.execution` notifications for progressive tool input rendering.
+
+### Bug Fixes
+
+- **session-manager**: Write `ended` status to registry when drain loop exits — previously only per-session runtime state was updated, leaving job sessions stuck in "active" status indefinitely.
+
 ## [v0.3.1] - 2026-03-17
 
 ### Performance
