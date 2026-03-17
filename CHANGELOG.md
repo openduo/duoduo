@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.3.1] - 2026-03-17
+
+### Performance
+
+- Cross-cutting runtime I/O optimizations — caching, append-only mailbox, sharded registry, and lazy reads across hot paths.
+
+### Bug Fixes
+
+- **cadence**: Settle subconscious partition scheduling — fix round-robin stalls and idle-tick fanout.
+- **replay**: Validate warm freshness against replay file state to prevent stale cache hits.
+- **cli**: Reject pending RPC requests on graceful WebSocket close instead of leaking promises.
+- **postinstall**: Restore execute permission on vendored ripgrep binaries after npm install.
+
 ## [v0.3.0] - 2026-03-15
 
 ### Features
