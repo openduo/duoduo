@@ -12,7 +12,11 @@ All notable changes to this project will be documented here.
 
 ### Bug Fixes
 
+- **dashboard**: Show working directory (cwd) in signal tooltips for sessions and jobs; use diamond shape for one-shot jobs (`@in`, `@once`).
 - **session-manager**: Write `ended` status to registry when drain loop exits — previously only per-session runtime state was updated, leaving job sessions stuck in "active" status indefinitely.
+- **cadence**: Disambiguate partition-local paths from shared memory in subconscious context.
+- **runtime**: `bootstrapDir` fallback uses package root instead of `process.cwd()`.
+- **runner**: Fix `input_summary` serializing as `[object]` when tool input is undefined.
 
 ## [v0.3.1] - 2026-03-17
 
