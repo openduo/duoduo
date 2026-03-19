@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.3.3] - 2026-03-19
+
+### Features
+
+- **daemon**: `system.config` RPC — inspect effective runtime configuration (network, sessions, cadence, SDK, paths) with source tracking (`env` / `default` / `unset`).
+- **cli**: Host-side `.env` file support — daemon command auto-loads dotenv before starting.
+- **dashboard**: Render `channel.message` and `channel.command` as ingress events in the event stream.
+- **feishu**: Clarify allowlist entity semantics and add gateway ENV_ARGS passthrough.
+- **bootstrap**: Expand subconscious and working-memory partition guidance.
+
+### Bug Fixes
+
+- **daemon**: Per-consumer channel capabilities to prevent overwrite race ([#7](https://github.com/openduo/duoduo/issues/7)).
+- **daemon**: Handle `system.shutdown` method to defer SIGTERM response until cleanup completes.
+- **cli**: Validate remote daemon shutdown before reporting success.
+- **session-manager**: Align disallowed tools list with `DEFAULT_DISALLOWED_TOOLS` for consistency.
+- **agent-sdk**: Extend `DEFAULT_DISALLOWED_TOOLS` to include additional unsafe tools.
+- **feishu**: Clean typing indicators for coalesced ingress messages.
+- **cadence**: Simplify partition context injection; fix channel output delivery and registry hydration.
+
+
 ## [v0.3.2] - 2026-03-18
 
 ### Features
