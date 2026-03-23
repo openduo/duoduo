@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.3.4] - 2026-03-23
+
+### Bug Fixes
+
+- **session-manager**: Force-kill unresponsive SDK turns that exceed graceful shutdown timeout.
+- **runtime**: Guard session lock release so only the owning runner can unlock.
+- **runner**: Preserve interrupted context on late aborts instead of discarding partial results.
+- **agent-sdk**: Strip internal environment variables from child process env to prevent leaking into spawned sessions.
+- **daemon**: Stop clearing channel capabilities on WebSocket close ([#9](https://github.com/openduo/duoduo/issues/9)).
+- **feishu**: Scope host dotenv loading to channel start to avoid polluting daemon env.
+- **feishu**: Detect image MIME type from magic bytes instead of hardcoding `image/png`.
+
+
 ## [v0.3.3] - 2026-03-19
 
 ### Features
