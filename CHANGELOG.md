@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.3.5] - 2026-03-23
+
+### Bug Fixes
+
+- **cli**: Fix ESM self-invocation guard failing when install path contains spaces ([#11](https://github.com/openduo/duoduo/issues/11)). The CLI would silently exit with code 0 producing no output at all. Now uses `pathToFileURL()` for correct URL encoding.
+
 ## [v0.3.4] - 2026-03-23
 
 ### Bug Fixes
