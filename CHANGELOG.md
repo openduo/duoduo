@@ -2,11 +2,13 @@
 
 All notable changes to this project will be documented here.
 
-## [v0.3.5] - 2026-03-23
+## [v0.3.5] - 2026-03-24
 
 ### Bug Fixes
 
 - **cli**: Fix ESM self-invocation guard failing when install path contains spaces ([#11](https://github.com/openduo/duoduo/issues/11)). The CLI would silently exit with code 0 producing no output at all. Now uses `pathToFileURL()` for correct URL encoding.
+- **agent-sdk**: Escalate abort recovery for unresponsive SDK subprocesses so reset/cancel paths can force-close a stuck turn without leaving abandoned work behind.
+- **runner**: Keep session lock heartbeat and release ownership inside the active drain so actors that never acquired the lock cannot renew or delete it.
 
 ## [v0.3.4] - 2026-03-23
 
