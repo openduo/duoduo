@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.3.6] - 2026-03-24
+
+### Features
+
+- **logging**: Add `trace` log level below `debug`. Read-only polling RPCs (`spine.tail`, `system.status`, `usage.get`, `job.list`) are demoted from debug to trace, cutting daemon log volume by ~80% at the default debug level.
+
+### Bug Fixes
+
+- **session-manager**: Prevent permanent session hang when the SDK subprocess exits before consuming any prompt ([#15](https://github.com/openduo/duoduo/issues/15)). The streaming session now tracks a `closed` state and rejects dangling/late turns so the drain loop can recover on the next wake instead of stalling forever.
+- **session-manager**: Route background subagent `task_notification` messages to session inbox when they arrive after the current turn has already resolved. Previously these were silently dropped.
+- **session-manager**: Release concurrency pool slots when sessions enter idle state. Idle resident sessions no longer count against the channel/job concurrency limit, allowing queued sessions to start without waiting for idle timeout.
+
 ## [v0.3.5] - 2026-03-24
 
 ### Bug Fixes
