@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.3.7] - 2026-03-28
+
+### Features
+
+- **protocol**: Add `session.stream_end` notification for interrupted streaming turns. Channels can now clean up streaming UI (cards, typing indicators) when a turn is interrupted by Skip or preemption, preventing stale partial text from leaking across turns in group chat. ([#20](https://github.com/openduo/duoduo/issues/20))
+- **session-manager**: Streaming turn admission control — new ingress enters a live CLI session without interrupting the active drain. When the CLI's result is delayed (e.g. background tasks polling), later messages are admitted into the same streaming session via a drain-scoped callback, keeping the session alive instead of killing and rebuilding it. ([#20](https://github.com/openduo/duoduo/issues/20))
+- **daemon**: Expose runtime version in `system.runtime.info` RPC and ATC dashboard.
+
+### Bug Fixes
+
+- **session-manager**: Route `task_notification` to inbox regardless of streaming turn state. Previously, notifications arriving while a turn was active were silently swallowed as generic system events. ([#20](https://github.com/openduo/duoduo/issues/20))
+- **session-manager**: Deny `Bash(run_in_background=true)` via PreToolUse hook. CLI's polling loop only activates for `local_agent` task types, causing completion notifications for 2nd+ concurrent Bash background tasks to be silently dropped. The hook directs the agent to use `Agent(run_in_background=true)` instead, which is 100% reliable.
+- **channel-feishu**: Resolve `@mention` placeholders to readable user names and enforce group command security.
+- **cli**: Use runtime node binary for channel plugin start instead of install-time path.
+
+### Dependencies
+
+- Upgrade `@anthropic-ai/claude-agent-sdk` from 0.2.63 to 0.2.81.
+
+### Documentation
+
+- Add streaming turn lifecycle design doc (`docs/refactor-streaming-turn-resolution.md`).
+- Document Bash `run_in_background` notification drop as SDK limitation with full root cause analysis.
+- Add Host Mode Deploy SOP for pre-release testing.
+
+
 ## [v0.3.6] - 2026-03-24
 
 ### Features
