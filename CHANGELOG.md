@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.4.0] - 2026-03-31
+
+### Features
+
+- feat(observability): add last_error to session state and dashboard (17b4bfb)
+- feat(session): add readAllSessionStates() for scanning state.json files (c63683f)
+- feat(session): add pending-work hydration predicate (8001d43)
+- feat(session-manager): add getActorView() and listActors() methods (adf46de)
+- feat(session): reader fallback chain and session_key backfill (3fd1b1e)
+- feat(session): dual-write cwd and watermark to state.json (779e219)
+- feat(session): extend SessionRuntimeState with session metadata fields (fb7491f)
+
+### Bug Fixes
+
+- fix: keep Claude Code runtime defaults in process env (9d35a5d)
+- fix(runtime): default ENABLE_TOOL_SEARCH=auto:5 for MCP tool discoverability (84e55c3)
+- fix(channel-feishu): streaming card only updates currentText on confirmed sync (afe4a66)
+- fix(session-manager): add drain cancelled flag and tighten stream_end emission (b0051a4)
+- fix(job): wire system-level notify delivery and fix child job routing (9e7b13b)
+- fix(gateway): /task kill surfaces cancel failure, start time falls back to registry (54e9e9b)
+- fix(gateway): /task merges actor views with persistent sessions (29e660a)
+- fix(daemon): system.status falls back to registry for pre-migration sessions (3aba562)
+- fix: add getActorView/listActors to test mocks, fix SessionStatusEntry type (c10a659)
+- fix: per-session merge for status views and live ManageSession status (32cb638)
+- fix(cli): defer connection status until cwd_abs is resolved (4e545b8)
+- fix(channel-feishu): skip sender prefix for slash commands in group chats (6e2b9a5)
+- fix(session-manager): skip stale session ID resume in streaming mode (90c5bc6)
+- fix(daemon): wait for process exit after SIGTERM before returning (e236d0c)
+- fix(channel-feishu): accept null sender_id fields from bots with limited contact permissions (cf91a07)
+- fix(daemon): eliminate race conditions in daemon stop lifecycle (b6ed9b3)
+- fix(skip): remove self-preempt and emit stream_end on no-output drain (fd03ce4)
+- fix(session-manager): use transport-level stop for /cancel on streaming sessions (6f9628d)
+
+### Internal
+
+- refactor: remove session_id from registry writes, single source cleanup (b6022ea)
+- test: update session-manager and pool tests for registry write removal (77ac7d6)
+- docs: session state refactor design (registry → derived view) (2122772)
+
+### Other
+
+- test(gateway): add reproducers for /task kill failure and registry timestamp fallback (f0fea4d)
+- test(runner): check state.json for abort session_id instead of registry (acb73f4)
+- test(session-manager): adapt 11 tests to registry hot-path write removal (97a18e3)
+- refactor(session-manager): remove registry hot-path writes (6bd8fe4)
+- refactor(daemon,gateway): migrate registry consumers to actor views with fallback (99f9822)
+- refactor(tools): prefer state.json for session discovery in Notify (c57f6c5)
+- refactor(tools): prefer state.json for status/cwd/sdk_session_id in ManageSession (e3eec25)
+- refactor(tools): prefer state.json for cwd in QueueOutboundAttachment (e0690c1)
+
+
 ## [v0.3.7] - 2026-03-28
 
 ### Features
