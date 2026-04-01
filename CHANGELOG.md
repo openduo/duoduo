@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.4.1] - 2026-04-01
+
+### Bug Fixes
+
+- fix(session-manager): restore conversation context for idle sessions after daemon restart (#34)
+- fix(session-manager): close SDK query in stopStreamingSession to prevent cancel hang
+
 ## [v0.4.0] - 2026-03-31
 
 ### Features
