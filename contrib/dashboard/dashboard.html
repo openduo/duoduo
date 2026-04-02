@@ -444,6 +444,8 @@ body{
   var lastEventId = null, autoFollow = true, blinkTimers = new Map();
   // Track last event timestamp per session from the actual event stream
   var lastSeenBySession = new Map(); // session_key -> timestamp (ms)
+  // session_key -> display_name lookup (populated from system.status)
+  var sessionDisplayNames = new Map();
   var streamEl = document.getElementById("stream");
   var signalEl = document.getElementById("signal-bar");
   var followEl = document.getElementById("follow-ind");
@@ -469,13 +471,26 @@ body{
   function fmtTools(n){if(n==null)return"-- tools";if(n>=1e3)return(n/1e3).toFixed(1)+"k tools";return n+" tools"}
   function timeAgo(s){if(!s)return"never";var ms=Date.now()-new Date(s).getTime();if(ms<60000)return Math.floor(ms/1000)+"s ago";if(ms<3600000)return Math.floor(ms/60000)+"m ago";if(ms<86400000)return Math.floor(ms/3600000)+"h ago";return Math.floor(ms/86400000)+"d ago"}
 
-  function shortActor(k) {
+  function shortActor(k, evt) {
     if(!k)return"system";
     if(k.startsWith("job:")){var n=k.slice(4),d=n.lastIndexOf(".");return d>0?n.slice(0,d):n}
-    if(k.startsWith("meta:subconscious:"))return k.slice(18);
+    if(k === "meta:subconscious" || k.startsWith("meta:subconscious:")) {
+      var pName = (evt && evt.payload && evt.payload.partition)
+        || (evt && evt.source && evt.source.name && evt.source.name.startsWith("subconscious:")
+            ? evt.source.name.slice(13) : null);
+      return pName ? "sub:" + pName : "subconscious";
+    }
     if(k.startsWith("meta:"))return k.slice(5);
+    // Use display_name from status API if available
+    var dn = sessionDisplayNames.get(k);
+    if(dn && dn !== k) {
+      var p0 = k.split(":")[0];
+      var label = dn.length > 16 ? dn.slice(0,15) + "\u2026" : dn;
+      return p0 + ":" + label;
+    }
     var p=k.split(":");
-    if(p.length>=2)return p[0]+":"+p[p.length-1].slice(-8);
+    if(p.length>=3)return p[0]+":"+p.slice(1,-1).join(":").slice(0,12);
+    if(p.length===2)return p[0]+":"+p[1].slice(-8);
     return k.slice(-12);
   }
 
@@ -611,7 +626,7 @@ body{
       row.dataset.id = evt.id;
 
       var time = evt.ts ? new Date(evt.ts).toISOString().slice(11, 19) : "??:??:??";
-      var actor = shortActor(evt.session_key);
+      var actor = shortActor(evt.session_key, evt);
 
       row.innerHTML =
         '<span class="evt-time">' + esc(time) + '</span>' +
@@ -709,8 +724,9 @@ body{
     if (cortex.length > 0) {
       var h = '<span class="sig-label">cortex</span>';
       cortex.forEach(function(s){
-        var color = s.status==="active"?"running":s.status==="error"?"alert":s.status==="ended"?"off":"standby";
-        var tip = s.session_key+"\n"+s.status+" \u2022 "+(s.health||"ok")+"\nlast: "+timeAgo(s.last_event_at)+"\ncreated: "+timeAgo(s.created_at)+(s.cwd?"\ncwd: "+s.cwd:"");
+        var color = s.last_error?"alert":s.status==="active"?"running":s.status==="error"?"alert":s.status==="ended"?"off":"standby";
+        var dn = s.display_name || s.session_key;
+        var tip = dn+(dn!==s.session_key?"\n"+s.session_key:"")+"\n"+s.status+" \u2022 "+(s.health||"ok")+"\nlast: "+timeAgo(s.last_event_at)+"\ncreated: "+timeAgo(s.created_at)+(s.cwd?"\ncwd: "+s.cwd:"")+(s.last_error?"\n\u26A0 error: "+s.last_error.message+" ("+timeAgo(s.last_error.at)+")":"");
         h+='<div class="ind circle '+color+'" data-key="'+esc(s.session_key)+'" data-tip="'+esc(tip)+'"></div>';
       });
       groups.push(h);
@@ -781,7 +797,10 @@ body{
       var us=r[1].status==="fulfilled"?r[1].value:null;
       var jr=r[2].status==="fulfilled"?r[2].value:null;
       if(us&&us.sessions){var cost=0,tokens=0,tools=0;Object.values(us.sessions).forEach(function(s){var m=s.summary;if(m){cost+=m.total_cost_usd||0;tokens+=(m.total_input_tokens||0)+(m.total_output_tokens||0)+(m.total_cache_read_tokens||0);tools+=m.total_tool_calls||0}});costEl.textContent=fmtCost(cost);tokensEl.textContent=fmtTokens(tokens);toolsEl.textContent=fmtTools(tools)}
-      if(st){var gw=st.health.gateway,ms=st.health.meta_session;healthDot.className=gw==="ok"&&(ms==="ok"||ms==="starting")?"health-dot":gw==="down"||ms==="down"?"health-dot err":"health-dot warn";renderSignalBar(st,jr?jr.jobs:[])}else{healthDot.className="health-dot err"}
+      if(st){
+        (st.sessions||[]).forEach(function(s){if(s.display_name)sessionDisplayNames.set(s.session_key,s.display_name)});
+        var gw=st.health.gateway,ms=st.health.meta_session;healthDot.className=gw==="ok"&&(ms==="ok"||ms==="starting")?"health-dot":gw==="down"||ms==="down"?"health-dot err":"health-dot warn";renderSignalBar(st,jr?jr.jobs:[])
+      }else{healthDot.className="health-dot err"}
     });
   }
   function pollEvents(){

@@ -12,10 +12,6 @@ that adds:
 - **Entities tab** — Searchable entity list from `memory/index.md`, grouped by section (People/Tools/Services/Projects), with markdown rendering + edit/save
 - **Edit/Save** — Optional host-side write API for live editing of config and entity files
 
-> **Note**: This dashboard was built against an earlier version of the default
-> dashboard. Some features from the latest default dashboard (e.g. human-readable
-> session names in the Event Stream tab) may not be present.
-
 ## Files
 
 - `dashboard.html` — the dashboard itself (single-file, no build step)
