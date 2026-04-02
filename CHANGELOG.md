@@ -2,12 +2,18 @@
 
 All notable changes to this project will be documented here.
 
-## [v0.4.1] - 2026-04-01
+## [v0.4.2] - 2026-04-02
 
 ### Bug Fixes
 
-- fix(session-manager): restore conversation context for idle sessions after daemon restart (#34)
+- fix(session-manager): enable streaming session resume after daemon restart (#34)
 - fix(session-manager): close SDK query in stopStreamingSession to prevent cancel hang
+- fix(drain-loop): break tight CPU-burning loop caused by orphan mailbox items
+- fix(daemon): self-heal pre-migration cwd from registry to state.json
+
+### Features
+
+- feat(dashboard): display human-readable session names in status and event stream
 
 ## [v0.4.0] - 2026-03-31
 
