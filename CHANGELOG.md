@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.4.3] - 2026-04-05
+
+### Bug Fixes
+
+- fix(skip): suppress outbox via PreToolUse hook instead of post-drain state.json detection (#39)
+  - Skip tool now sets an in-memory flag via SDK PreToolUse hook, eliminating disk I/O per turn
+  - Runner checks `sdkResult.skipped` (simple boolean) to suppress outbox emission
+  - Multi-turn drains are naturally correct — each turn carries its own flag
+- fix(daemon): add `stream_end` to pull stream return_mask whitelist (#40)
+  - The mask normalizer silently dropped `stream_end`, preventing channels from receiving
+    stream cleanup notifications — typing indicators were never removed after Skip turns
+- fix(daemon): forward ANTHROPIC_* env and apply onboard state on upgrade
+
+### Features
+
+- feat(daemon): launchd-based process management for macOS
+- feat: add `kernel_dir` to `system.runtime.info` for contrib path discovery
+
+### Internal
+
+- refactor: simplify host onboarding auth flow
+- Protocol bumped to 0.2.7 (`kernel_dir` field added to `RuntimeInfoResponse`)
+
 ## [v0.4.2] - 2026-04-02
 
 ### Bug Fixes
