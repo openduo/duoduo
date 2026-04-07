@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.4.4] - 2026-04-07
+
+### Features
+
+- feat(codex): Codex app-server adapter (Phase 1) for running job sessions on GPT-5.4
+  - Add `runtime` parameter to job definitions (`"claude"` | `"codex"`)
+  - Dynamic tools bridge: aladuo MCP tools available to Codex sessions
+  - Preflight check for codex CLI availability
+  - `ALADUO_CODEX_ENABLED` feature flag and `ALADUO_CODEX_SANDBOX` env var
+  - Auto-symlink `AGENTS.md` to `CLAUDE.md` for Codex sessions
+- feat(dashboard): show KV cache hit rate in stats bar
+
+### Performance
+
+- perf(dashboard): add lightweight polling modes for `usage.get` and `job.list`
+  - `usage.get` with `mode: "totals"` returns a single aggregate summary (~1KB vs ~230KB)
+  - `job.list` with `summary: true` strips instruction content (~8KB vs ~60KB)
+  - Dashboard polling bandwidth reduced by ~97%
+
+### Bug Fixes
+
+- fix(codex-adapter): add turnId notification filter and tool policy guard
+- fix(codex-adapter): throw AbortError on turn abort for runner compatibility
+- fix(job): serialize runtime field in frontmatter
+
+### Security
+
+- chore(deps): fix dependabot security alerts
+
 ## [v0.4.3] - 2026-04-05
 
 ### Bug Fixes
