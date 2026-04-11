@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.4.5] - 2026-04-11
+
+### Features
+
+- **Job `keepalive` schedule type** (#44): a new cron value that runs once then keeps its session dormant. The conversation can be resumed later by sending a Notify to the job's session key — ideal for interactive worker use cases where the initial result may need follow-up questions or iterative refinement. Archive explicitly when done.
+
+- **Periodic job mission as system prompt** (#45): job instructions are no longer re-sent as user messages on every cron tick. The mission is injected into the system-prompt append layer (new 6th layer in the prompt taxonomy), and each trigger sends a compact `<job-tick>` metadata block with `run_number`, `triggered_at`, and `previous_run_at`. Eliminates linear token bloat for periodic jobs and gives the model correct temporal awareness.
+
+- **Versioned session schema upgrade**: new `schema_version` and `mission_fingerprint` fields in session state. Pre-existing job sessions are automatically upgraded to v1 on their first drain after deployment — no migration script, no operator intervention. The upgrade is one-time and crash-resilient (fires at most once per session, survives mid-drain crashes via atomic state writes).
+
+- **Runtime-aware mission fingerprint guard**: when a job's mission file is edited (per the "everything is a file" design), the change takes effect on the next drain. On the Claude runtime, conversation history is fully preserved (zero cost). On the Codex runtime, the thread is rebuilt because `thread/resume` cannot accept new developer instructions (protocol constraint).
+
+- **`ALADUO_TELEMETRY_ENABLED` env var**: set to `false` to disable `var/telemetry/*.jsonl` file persistence while keeping in-process debug telemetry logs intact. Exposed in `system.config` RPC and dashboard.
+
+- **`ManageJob(list)` improvements**: every entry now includes `session_key` (for notify routing) and `runtime` (claude/codex). Keepalive entries carry a `note` explaining the dormant-but-wakeable lifecycle.
+
+### Bug Fixes
+
+- **Archive session tombstone** (#44): `ManageJob(archive)` now moves the session directory to `var/sessions-archive/` (symmetric with how job files are archived). Previously only the registry entry was deleted, leaving orphan session dirs that could be re-hydrated on daemon restart. This also fixes a pre-existing disk leak for `once` and `@in` jobs.
+
+- **Delivery guard for archived sessions**: refuses delivery to archived sessions with a clean `session_archived` error, preventing phantom directory creation. Recreated sessions (archive + create with the same key) are correctly handled — the active directory takes priority over the stale tombstone.
+
+- **Registry clear on mission guard reset**: the fingerprint guard now clears both `state.json` and registry `session_id` when forcing a session rebuild, preventing stale resume fallback.
+
+- fix(notify): prevent hallucinated replies from task_notification (#41)
+- fix(session): clear both state.json and registry on /clear to prevent stale resume
+
+### Documentation
+
+- **ManageJob tool description clarifications** (#43): `cwd_rel` now explicitly states that the runtime workspace is persistent (not a stateless sandbox). `instruction` explains the file-based mission editing contract.
+- Design docs added for all three job-system features.
+- Host Mode Deploy commands fixed to use `&&` and `daemon restart`.
+
 ## [v0.4.4] - 2026-04-07
 
 ### Features
