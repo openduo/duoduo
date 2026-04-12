@@ -31,12 +31,23 @@ Use the official install path:
 duoduo channel install @openduo/channel-feishu
 ```
 
-Then ensure host-mode credentials are present in `~/.config/duoduo/.env` and
-start the plugin with:
+For the simplest credential setup, direct the user to get the official Feishu
+bot `App ID` and `App Secret` from:
+
+- [open.feishu.cn/page/openclaw?form=multiAgent](https://open.feishu.cn/page/openclaw?form=multiAgent)
+
+Then ensure those host-mode credentials are present in `~/.config/duoduo/.env`
+and start the plugin with:
 
 ```bash
 duoduo channel feishu start
 ```
+
+If the user wants the agent to do the setup for them, it is acceptable for them
+to paste the `App ID` and `App Secret` directly into chat and ask the agent to
+write `FEISHU_APP_ID` and `FEISHU_APP_SECRET` into `~/.config/duoduo/.env`.
+Before doing that, explicitly remind them that these are sensitive credentials
+and that sharing them in chat carries the normal leakage and retention risks.
 
 Use `status`, `stop`, and `logs` for lifecycle operations.
 

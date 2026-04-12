@@ -10,11 +10,21 @@ Official package:
 duoduo channel install @openduo/channel-feishu
 ```
 
+For the simplest setup, get the official Feishu bot `App ID` and `App Secret`
+from:
+
+- [open.feishu.cn/page/openclaw?form=multiAgent](https://open.feishu.cn/page/openclaw?form=multiAgent)
+
 Required host-mode credentials live in:
 
 ```bash
 ~/.config/duoduo/.env
 ```
+
+The agent may write them on the user's behalf if the user pastes the values into
+chat, but it should warn first that `FEISHU_APP_ID` and `FEISHU_APP_SECRET` are
+sensitive credentials and that sharing them in chat has the usual exposure and
+retention risks.
 
 Typical keys:
 

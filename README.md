@@ -105,9 +105,70 @@ duoduo channel install @openduo/channel-feishu
 duoduo channel feishu start
 ```
 
+For the simplest Feishu setup, get the official bot `App ID` and `App Secret`
+from:
+
+- [open.feishu.cn/page/openclaw?form=multiAgent](https://open.feishu.cn/page/openclaw?form=multiAgent)
+
+Then put them into your host-mode `~/.config/duoduo/.env` as
+`FEISHU_APP_ID` and `FEISHU_APP_SECRET` before starting the channel.
+
 Available:
 
 - [`@openduo/channel-feishu`](https://www.npmjs.com/package/@openduo/channel-feishu) — Feishu / Lark
+
+## Skills
+
+This repo also publishes host-mode operations skills for agents that use the
+[`skills`](https://skills.sh/) installer.
+
+List available skills:
+
+```bash
+npx -y skills add https://github.com/openduo/duoduo --list
+```
+
+Install all skills for all detected agents, non-interactively:
+
+```bash
+npx -y skills add https://github.com/openduo/duoduo --all
+```
+
+Install globally for all detected agents, non-interactively:
+
+```bash
+npx -y skills add https://github.com/openduo/duoduo --global --all
+```
+
+Install only the duoduo operations skills:
+
+```bash
+npx -y skills add https://github.com/openduo/duoduo \
+  --global \
+  --yes \
+  --skill duoduo-admin duoduo-channel-admin duoduo-runtime-admin
+```
+
+### Skill Triggering
+
+Do not rely on agent-specific syntax such as `$skill-name`.
+
+Use plain prompts such as:
+
+- `使用 duoduo-admin 技能，解释我当前 duoduo host mode 的配置，并检查 daemon status/config。`
+- `使用 duoduo-channel-admin 技能，安装并拉起 feishu channel，然后检查 status 和 logs。`
+- `使用 duoduo-runtime-admin 技能，打开 debug log、关闭 telemetry，并把修改后的配置讲清楚。`
+- `使用 duoduo-channel-admin 技能，配置 stdio 的默认 workspace 和 prompt。`
+- `使用 duoduo-admin 技能，帮我定位这个 duoduo 问题；如果像是产品缺陷，就按 openduo/duoduo 的要求起草 issue。`
+
+These skills are designed around host-mode operations after onboarding. They
+cover:
+
+- understanding how `stdio`, the daemon, channels, and runtime files fit together
+- installing and operating Feishu and other duoduo-compatible channel plugins
+- changing host-mode runtime settings such as debug logs, telemetry, cadence,
+  and Codex runtime gates
+- investigating problems and preparing public-safe issues for `openduo/duoduo`
 
 ## Packages
 
