@@ -88,6 +88,28 @@ Preference order for end users:
 
 Only use source checkout + build in developer or unreleased-package scenarios.
 
+After `duoduo channel wechat start`, check `duoduo channel wechat logs` for
+`QRCODE_READY:<path>`.
+
+Resolve the state dir for QR helpers in this order:
+
+1. `WECHAT_STATE_DIR` from `~/.config/duoduo/.env`
+2. the directory part of `QRCODE_READY:<path>` when logs already have it
+3. the default `~/.aladuo/channel-wechat`
+
+Display rules for the QR image:
+
+1. If the current client can show local images, render the local PNG directly.
+2. In stdio or TTY flows, prefer the plugin QR subcommand instead of parsing
+   timestamped logs: `duoduo-wechat qrcode-terminal --state-dir <dir>`.
+3. If the bin is not on `PATH`, inspect
+   `<runtime_dir>/plugins/channels/wechat/manifest.json`, read `packageRoot`,
+   and run `node <packageRoot>/dist/plugin.js qrcode-terminal --state-dir <dir>`.
+4. If there is no QR subcommand available, at least output the PNG path and the
+   next step.
+5. For remote channels such as Feishu, read the QR path from logs and send the
+   image to the user.
+
 ## Verification
 
 After any install or restart:

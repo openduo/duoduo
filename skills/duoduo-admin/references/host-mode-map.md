@@ -43,6 +43,13 @@ instead of assuming `~/aladuo` or `~/.aladuo`.
 
 ## Upgrade Flow
 
+Check the installed version and the latest published version:
+
+```bash
+duoduo --version
+npm view @openduo/duoduo version
+```
+
 Update the CLI package:
 
 ```bash

@@ -25,6 +25,15 @@ Edit `~/.config/duoduo/.env` with
 [scripts/update_host_env.py](scripts/update_host_env.py) instead of ad-hoc
 shell edits when you want predictable results.
 
+When the user asks whether duoduo itself is outdated, check:
+
+```bash
+duoduo --version
+npm view @openduo/duoduo version
+```
+
+Then explain whether an update is actually needed before changing anything.
+
 Typical keys:
 
 - `ALADUO_LOG_LEVEL`

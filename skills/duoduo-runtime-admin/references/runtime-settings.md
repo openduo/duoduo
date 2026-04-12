@@ -10,6 +10,13 @@ duoduo daemon config
 duoduo daemon logs
 ```
 
+To check whether the installed CLI is behind npm:
+
+```bash
+duoduo --version
+npm view @openduo/duoduo version
+```
+
 ## Persistent File
 
 ```bash

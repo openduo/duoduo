@@ -74,6 +74,24 @@ No credentials are required. Each ACP session maps 1:1 to a daemon session.
   the user only has a local unreleased tarball flow.
 - For normal user setup, do not ask the user to clone the repo or run a build
   if a published prebuilt package already exists.
+- After `duoduo channel wechat start`, read `duoduo channel wechat logs` for
+  `QRCODE_READY:<path>`.
+- If the client can render local images, show the local PNG directly.
+- Resolve the WeChat state dir before using the QR subcommand. Prefer
+  `WECHAT_STATE_DIR` from `~/.config/duoduo/.env`; otherwise use the default
+  `~/.aladuo/channel-wechat`. If logs already contain `QRCODE_READY:<path>`,
+  the directory name of that PNG is also the correct state dir.
+- In stdio or TTY flows, prefer the plugin QR subcommand instead of parsing
+  multiline logs. Use `duoduo-wechat qrcode-terminal --state-dir <dir>` when
+  the package bin is available.
+- If `duoduo-wechat` is not on `PATH`, inspect the installed channel manifest
+  to find `packageRoot`, then run
+  `node <packageRoot>/dist/plugin.js qrcode-terminal --state-dir <dir>`. In
+  default host-mode installs the manifest lives at
+  `<runtime_dir>/plugins/channels/wechat/manifest.json`.
+- If the QR subcommand is not available, output the PNG path and the next step.
+- For remote channels such as Feishu, read the QR path from logs and send the
+  image to the user.
 
 ## Configure Channel Behavior
 

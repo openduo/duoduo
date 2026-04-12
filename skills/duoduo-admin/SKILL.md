@@ -43,6 +43,15 @@ needs a fuller explanation of how these surfaces fit together.
 
 ## Upgrade And Restart
 
+When the user asks whether an update is available, check both:
+
+```bash
+duoduo --version
+npm view @openduo/duoduo version
+```
+
+Compare the installed version with the latest published npm version.
+
 When the user asks to update duoduo itself in host mode, use this sequence:
 
 ```bash
