@@ -74,11 +74,19 @@ It does not treat a raw Git repository URL as an install target.
 
 For WeChat, first determine which of these is true:
 
-1. A published package such as `@openduo/channel-wechat` exists and contains
-   duoduo-compatible channel plugin metadata. Install that package.
+1. A published prebuilt package such as `@openduo/channel-wechat` exists and
+   contains duoduo-compatible channel plugin metadata. Install that package.
 2. A local `.tgz` tarball exists. Install the tarball.
 3. Only source code exists. Package or publish it before trying to install it
    with duoduo.
+
+Preference order for end users:
+
+1. published npm package
+2. local prebuilt tarball
+3. source checkout + build
+
+Only use source checkout + build in developer or unreleased-package scenarios.
 
 ## Verification
 

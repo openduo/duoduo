@@ -65,10 +65,15 @@ No credentials are required. Each ACP session maps 1:1 to a daemon session.
 ### WeChat And Other Third-Party Channels
 
 - Duoduo's installer accepts npm package specs or `.tgz` tarballs.
+- Prefer prebuilt published packages first. For WeChat, prefer:
+  `duoduo channel install @openduo/channel-wechat`
 - Do not claim that `duoduo channel install https://github.com/...` works unless
   the runtime actually supports it.
-- If a third-party repo is not yet published in a duoduo-compatible form,
-  package or publish it first, then install the npm package or tarball.
+- Only use source checkout + local build when one of these is true:
+  the package is not published yet, the user explicitly wants a dev build, or
+  the user only has a local unreleased tarball flow.
+- For normal user setup, do not ask the user to clone the repo or run a build
+  if a published prebuilt package already exists.
 
 ## Configure Channel Behavior
 
