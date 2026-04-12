@@ -67,6 +67,9 @@ No credentials are required. Each ACP session maps 1:1 to a daemon session.
 - Duoduo's installer accepts npm package specs or `.tgz` tarballs.
 - Prefer prebuilt published packages first. For WeChat, prefer:
   `duoduo channel install @openduo/channel-wechat`
+- The published npm package name is `@openduo/channel-wechat`. Do not rewrite
+  it to `@openduo/channel-weixin` unless the registry actually contains that
+  package.
 - Do not claim that `duoduo channel install https://github.com/...` works unless
   the runtime actually supports it.
 - Only use source checkout + local build when one of these is true:
@@ -81,6 +84,9 @@ No credentials are required. Each ACP session maps 1:1 to a daemon session.
   `WECHAT_STATE_DIR` from `~/.config/duoduo/.env`; otherwise use the default
   `~/.aladuo/channel-wechat`. If logs already contain `QRCODE_READY:<path>`,
   the directory name of that PNG is also the correct state dir.
+- Only use `qrcode-terminal` for a current pending login. A stale `qrcode.png`
+  left in the state dir is not enough; first confirm the current `start` or
+  `logs` output contains a fresh `QRCODE_READY:<path>`.
 - In stdio or TTY flows, prefer the plugin QR subcommand instead of parsing
   multiline logs. Use `duoduo-wechat qrcode-terminal --state-dir <dir>` when
   the package bin is available.

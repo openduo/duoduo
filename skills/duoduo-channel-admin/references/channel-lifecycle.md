@@ -76,6 +76,8 @@ For WeChat, first determine which of these is true:
 
 1. A published prebuilt package such as `@openduo/channel-wechat` exists and
    contains duoduo-compatible channel plugin metadata. Install that package.
+   Do not substitute `@openduo/channel-weixin` unless that package is actually
+   present in npm.
 2. A local `.tgz` tarball exists. Install the tarball.
 3. Only source code exists. Package or publish it before trying to install it
    with duoduo.
@@ -96,6 +98,10 @@ Resolve the state dir for QR helpers in this order:
 1. `WECHAT_STATE_DIR` from `~/.config/duoduo/.env`
 2. the directory part of `QRCODE_READY:<path>` when logs already have it
 3. the default `~/.aladuo/channel-wechat`
+
+Only run `qrcode-terminal` when the current login attempt has emitted a fresh
+`QRCODE_READY:<path>`. A leftover `qrcode.png` in the state dir may be stale
+from an older run and is not enough to prove there is a pending QR to render.
 
 Display rules for the QR image:
 
