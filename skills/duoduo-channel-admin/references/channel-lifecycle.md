@@ -31,6 +31,13 @@ Typical keys:
 - `FEISHU_APP_ID`
 - `FEISHU_APP_SECRET`
 - optionally `FEISHU_DOMAIN`
+- optionally `FEISHU_GROUP_CONTEXT_REMINDER` — set to `true` to enable passive
+  group-chat context capture. When enabled, the Feishu channel quietly records
+  group messages that are not directed at the bot, then surfaces the
+  "since last reply" window as an additional context reminder the next time the
+  bot is woken in that group. Default is `false` (disabled). The capture lives
+  entirely inside the Feishu channel process; restarting the channel drops any
+  uncaptured window.
 
 Lifecycle commands:
 
