@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.4.6] - 2026-04-14
+
+### Features
+
+- **stdio CLI terminal UX overhaul**: the stdio surface now uses a fullscreen
+  Ink layout with scrollback rendered via `<Static>`, input history, typeahead
+  command completions, and time-gap dividers that visually separate bursts of
+  activity. Markdown rendering gains table and horizontal-rule support.
+- **Feishu group context reminder** (channel-feishu 0.3.0): new opt-in
+  `FEISHU_GROUP_CONTEXT_REMINDER` env var. When `true`, the Feishu channel
+  passively captures non-mention group messages and surfaces the "since last
+  reply" window as an additional context block the next time the bot is woken
+  in that group. Default is `false`. State lives entirely inside the Feishu
+  channel process and is dropped on restart — a daemon outage costs at most
+  one wake's worth of passive context.
+
 ## [v0.4.5] - 2026-04-11
 
 ### Features
