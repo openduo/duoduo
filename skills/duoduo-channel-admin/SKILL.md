@@ -51,6 +51,49 @@ and that sharing them in chat carries the normal leakage and retention risks.
 
 Use `status`, `stop`, and `logs` for lifecycle operations.
 
+#### v0.5 Feishu setup card + `/setup` command
+
+From v0.5 onwards, new Feishu conversations go through an explicit setup
+card before the channel forwards messages to the daemon. The card lets the
+user pick a project (a discovered subdirectory under `ALADUO_WORK_DIR`
+that contains a `CLAUDE.md` — the scan walks up to 4 levels deep and
+skips `node_modules`, `dist`, `build`, and hidden directories) and a
+runtime (`claude` or `codex`). If the dropdown looks empty, the user's
+workspace root has no qualifying project at that depth.
+
+- First message in a new conversation: the channel intercepts the message,
+  posts the setup card, and prompts the user to resend after clicking
+  Start. The original message is not forwarded.
+- Any time later: the user can send `/setup` to re-bind the conversation to
+  a different project or runtime. In groups, only the original binder
+  (descriptor `bound_by`) may run `/setup`; pre-v0.5 descriptors without
+  `bound_by` fall back to the `FEISHU_GROUP_CMD_USERS` allowlist.
+
+If users report that setup-card clicks show error **200340**, the most
+common cause is one of three invisible layers on the Feishu developer
+console side (subscription or app-release related). Handler-side issues
+(a crash or a response that exceeds Feishu's ~3s budget) can also surface
+as 200340; check `duoduo channel feishu logs` first for
+`card.action.trigger` frames and handler errors. If no card action frames
+are arriving at all, the three-layer console configuration is the suspect.
+In either case, run `duoduo channel feishu doctor` — it prints the
+three-layer remediation checklist. See
+[references/channel-lifecycle.md](references/channel-lifecycle.md) for the
+full walkthrough.
+
+Recovering from 200340 usually does NOT require restarting the channel
+process: once the Feishu console is fixed, the running WS client already
+receives the next event. Restart is only needed when `doctor` itself has
+to run (doctor refuses to start while the channel is live).
+
+#### `duoduo channel <type> doctor` (v0.5+)
+
+Every channel plugin can expose a `doctor` subcommand for self-diagnosis.
+Use it when the user reports the channel "doesn't work" but logs and status
+look clean. For `feishu` specifically, `doctor` is the only way to surface
+the three-layer dev-console setup that cannot be introspected via Feishu
+API.
+
 ### ACP (Editor Integration)
 
 Install the official ACP bridge for editor integrations (Zed, Cursor, etc.):
@@ -118,6 +161,11 @@ Typical editable keys:
 - `allowedTools`
 - `disallowedTools`
 - `additionalDirectories`
+
+v0.5 adds three more keys that are usually written by `channel.spawn` (not
+edited by hand): `runtime`, `bound_by`, `bound_at`. See
+[references/channel-config-model.md](references/channel-config-model.md) for
+the full list and the priority-order fix for `new_session_workspace`.
 
 Use [scripts/patch_markdown_frontmatter.py](scripts/patch_markdown_frontmatter.py)
 for frontmatter edits that should preserve comments and the Markdown body.
