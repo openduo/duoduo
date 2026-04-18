@@ -1,6 +1,6 @@
 ---
 name: duoduo-runtime-admin
-description: "Manage host-mode duoduo runtime settings and diagnostics. Use when the user asks to inspect or change daemon status, daemon config, daemon logs, Codex runtime enablement, debug log level, telemetry persistence, cadence frequency, or other persistent host-mode settings stored in ~/.config/duoduo/.env. Also trigger for Chinese requests such as 帮我启用 codex runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, or 看看 duoduo daemon 配置."
+description: "Manage host-mode duoduo daemon-level settings and diagnostics. Use when the request involves: inspecting daemon status/config/logs, toggling Codex runtime availability (ALADUO_CODEX_ENABLED / sandbox), log verbosity (ALADUO_LOG_LEVEL), telemetry persistence, cadence interval, other ALADUO_* env keys in ~/.config/duoduo/.env, or running-daemon diagnostics. Also trigger for Chinese: 启用 codex runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, 看看 duoduo daemon 配置, 查 daemon 日志. This skill does NOT handle channel-kind settings (Feishu/WeChat/ACP) — those live in duoduo-channel-admin."
 ---
 
 # Duoduo Runtime Admin

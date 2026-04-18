@@ -1,6 +1,6 @@
 ---
 name: duoduo-admin
-description: "Explain and manage a host-mode duoduo installation after onboarding. Use when the user asks how duoduo works, how stdio relates to the daemon and channels, where duoduo stores config and state in host mode, how to inspect the current setup, or broadly asks to configure or understand duoduo before narrowing into channel or runtime changes. Also trigger for Chinese requests such as 帮我理解 duoduo, duoduo 是怎么工作的, 看看我现在的 duoduo 配置, or 帮我管理 duoduo."
+description: "Explain and manage a host-mode duoduo installation after onboarding. Use when the user asks how duoduo works, how stdio/daemon/channel/session fit together, where duoduo stores config and state, how to inspect current setup, how to upgrade duoduo itself (including migrating to v0.5), where something lives on disk (kernel_dir, runtime_dir, .env, descriptor.md), or for broad 'configure duoduo' / 'fix my duoduo' requests that haven't narrowed to a specific channel or runtime setting yet. Also trigger for Chinese: 帮我理解 duoduo, duoduo 是怎么工作的, 看看我现在的 duoduo 配置, 帮我管理 duoduo, 升级 duoduo, 升级到 v0.5 要注意什么, duoduo 哪个路径存什么."
 ---
 
 # Duoduo Admin
@@ -62,6 +62,25 @@ duoduo daemon restart
 Explain why the restart matters: the daemon is already running as a detached
 background process, so installing a newer CLI package does not hot-swap the
 existing daemon process.
+
+### Upgrading to v0.5 (Feishu channel semantics change)
+
+v0.5 introduces owner-DM auto-spawn and a `/setup` routing matrix for
+the Feishu channel. If the user is upgrading from a pre-v0.5 install
+AND has a Feishu channel configured, use /duoduo-channel-admin for detailed instructions, and focus on the
+sections "Main session contract" and "Security hygiene" BEFORE making
+behavioral changes on their behalf. In particular, warn them that:
+
+- Without `FEISHU_BOT_OWNER` set, any first DM sender is treated as
+  owner for that session's auto-spawn (zero-config bootstrap mode).
+- `dmPolicy=open` is the default, so combining zero-config with the
+  default means strangers who reach the bot can trigger auto-spawn.
+- Production configurations should set `FEISHU_BOT_OWNER` and
+  `FEISHU_DM_POLICY=allowlist` before exposing the bot broadly.
+
+Pre-v0.5 bindings (descriptors without `bound_by`) continue to work
+without migration — their `/setup` routes through the secondary card
+path, preserving operator reach.
 
 ## Find Problems And Escalate
 

@@ -1,158 +1,61 @@
 ---
 name: duoduo-channel-admin
-description: "Install, start, stop, inspect, and configure duoduo host-mode channels, especially Feishu and compatible npm or tarball channel plugins. Use when the user asks to run duoduo channel install/list/start/stop/status/logs, set Feishu credentials, package or install a WeChat channel plugin, configure stdio or Feishu prompts, adjust channel workspaces or streaming, or edit channel defaults in kind descriptors or instance descriptors. Also trigger for Chinese requests such as 帮我拉起 feishu 通道, 帮我拉起微信 channel, 配置 channel 提示词, 改 stdio 的 workspace, or 查看 channel 状态."
+description: "Install, start, stop, inspect, reset, and configure duoduo host-mode channels. Use when the request involves: channel lifecycle (install/list/start/stop/status/logs), Feishu setup card or /setup command, Feishu owner DM / main session / FEISHU_BOT_OWNER configuration, the 'main session is locked' refusal, stale card error, resetting a bound Feishu chat, WeChat QR login or packaging, ACP editor integration, channel descriptor editing (kind vs instance). Also trigger for Chinese: 拉起 feishu 通道, 拉起微信 channel, 配置 channel 提示词, 改 stdio 的 workspace, 查看 channel 状态, 飞书机器人怎么配, 设置 owner, 清除 session, 重置 channel, v0.5 升级 feishu 安全."
 ---
 
 # Duoduo Channel Admin
 
-This skill owns host-mode channel lifecycle and channel-facing configuration.
+Host-mode channel lifecycle and channel-facing configuration. Route
+by kind (Feishu / WeChat / ACP) and by task (install / configure /
+diagnose / reset).
 
-## Start With Channel Discovery
+## Start with discovery
 
-1. Confirm host mode with `duoduo daemon status`.
-2. Read `duoduo daemon config` to resolve the actual `kernel_dir` and
-   `runtime_dir`.
-3. Inspect installed plugins with `duoduo channel list`.
-4. When changing one specific channel instance, inspect the relevant
-   `descriptor.md` before editing it.
-
-Read [references/channel-lifecycle.md](references/channel-lifecycle.md) for the
-actual install and lifecycle rules, and
-[references/channel-config-model.md](references/channel-config-model.md) for the
-kind-vs-instance config model.
-
-## Install And Run Channels
-
-### Feishu
-
-Use the official install path:
+Before making any change, run the smallest read-only probe:
 
 ```bash
-duoduo channel install @openduo/channel-feishu
+duoduo daemon status             # confirm host mode, daemon alive
+duoduo daemon config             # resolve kernel_dir, runtime_dir, defaults
+duoduo channel list              # see installed plugins + running state
 ```
 
-For the simplest credential setup, direct the user to get the official Feishu
-bot `App ID` and `App Secret` from:
-
-- [open.feishu.cn/page/openclaw?form=multiAgent](https://open.feishu.cn/page/openclaw?form=multiAgent)
-
-Then ensure those host-mode credentials are present in `~/.config/duoduo/.env`
-and start the plugin with:
+When editing a specific channel instance, always inspect the current
+descriptor first:
 
 ```bash
-duoduo channel feishu start
+cat <runtime_dir>/var/channels/<channel_id>/descriptor.md
 ```
 
-If the user wants the agent to do the setup for them, it is acceptable for them
-to paste the `App ID` and `App Secret` directly into chat and ask the agent to
-write `FEISHU_APP_ID` and `FEISHU_APP_SECRET` into `~/.config/duoduo/.env`.
-Before doing that, explicitly remind them that these are sensitive credentials
-and that sharing them in chat carries the normal leakage and retention risks.
+## Route by kind
 
-Use `status`, `stop`, and `logs` for lifecycle operations.
+Each channel kind has its own reference. Load only the one that
+matches the request to avoid polluting context with unrelated detail.
 
-#### v0.5 Feishu setup card + `/setup` command
+- **Feishu** (飞书) → read [references/feishu.md](references/feishu.md).
+  Covers install, credentials, v0.5 `/setup` routing matrix, main
+  session contract (owner DM auto-spawn), `FEISHU_BOT_OWNER` security
+  hygiene, 200340 triage, reset walkthrough, stale-card guard,
+  accepted v0.5 limits.
+- **WeChat** (微信) → read [references/wechat.md](references/wechat.md).
+  Covers install, start, QR login, state-dir resolution.
+- **ACP** (编辑器) → read [references/acp.md](references/acp.md).
+  Covers install, editor integration semantics.
 
-From v0.5 onwards, new Feishu conversations go through an explicit setup
-card before the channel forwards messages to the daemon. The card lets the
-user pick a project (a discovered subdirectory under `ALADUO_WORK_DIR`
-that contains a `CLAUDE.md` — the scan walks up to 4 levels deep and
-skips `node_modules`, `dist`, `build`, and hidden directories) and a
-runtime (`claude` or `codex`). If the dropdown looks empty, the user's
-workspace root has no qualifying project at that depth.
+When the request is "diagnose a misbehaving Feishu channel" and the
+symptom isn't obvious, read
+[references/diagnose-feishu.md](references/diagnose-feishu.md) — it
+walks a decision tree (card errors, /setup refusals, stale history,
+stranger access, ownership drift) to the right remediation.
 
-- First message in a new conversation: the channel intercepts the message,
-  posts the setup card, and prompts the user to resend after clicking
-  Start. The original message is not forwarded.
-- Any time later: the user can send `/setup` to re-bind the conversation to
-  a different project or runtime. In groups, only the original binder
-  (descriptor `bound_by`) may run `/setup`; pre-v0.5 descriptors without
-  `bound_by` fall back to the `FEISHU_GROUP_CMD_USERS` allowlist.
+## Configure channel behavior
 
-If users report that setup-card clicks show error **200340**, the most
-common cause is one of three invisible layers on the Feishu developer
-console side (subscription or app-release related). Handler-side issues
-(a crash or a response that exceeds Feishu's ~3s budget) can also surface
-as 200340; check `duoduo channel feishu logs` first for
-`card.action.trigger` frames and handler errors. If no card action frames
-are arriving at all, the three-layer console configuration is the suspect.
-In either case, run `duoduo channel feishu doctor` — it prints the
-three-layer remediation checklist. See
-[references/channel-lifecycle.md](references/channel-lifecycle.md) for the
-full walkthrough.
+Descriptor model: **kind-level** for defaults applied to every
+channel of a kind; **instance-level** for one specific channel.
 
-Recovering from 200340 usually does NOT require restarting the channel
-process: once the Feishu console is fixed, the running WS client already
-receives the next event. Restart is only needed when `doctor` itself has
-to run (doctor refuses to start while the channel is live).
+- Kind descriptor: `<kernel_dir>/config/<kind>.md`
+- Instance descriptor: `<runtime_dir>/var/channels/<channel_id>/descriptor.md`
 
-#### `duoduo channel <type> doctor` (v0.5+)
-
-Every channel plugin can expose a `doctor` subcommand for self-diagnosis.
-Use it when the user reports the channel "doesn't work" but logs and status
-look clean. For `feishu` specifically, `doctor` is the only way to surface
-the three-layer dev-console setup that cannot be introspected via Feishu
-API.
-
-### ACP (Editor Integration)
-
-Install the official ACP bridge for editor integrations (Zed, Cursor, etc.):
-
-```bash
-duoduo channel install @openduo/channel-acp
-duoduo channel acp start
-```
-
-No credentials are required. Each ACP session maps 1:1 to a daemon session.
-
-### WeChat And Other Third-Party Channels
-
-- Duoduo's installer accepts npm package specs or `.tgz` tarballs.
-- Prefer prebuilt published packages first. For WeChat, prefer:
-  `duoduo channel install @openduo/channel-wechat`
-- The published npm package name is `@openduo/channel-wechat`. Do not rewrite
-  it to `@openduo/channel-weixin` unless the registry actually contains that
-  package.
-- Do not claim that `duoduo channel install https://github.com/...` works unless
-  the runtime actually supports it.
-- Only use source checkout + local build when one of these is true:
-  the package is not published yet, the user explicitly wants a dev build, or
-  the user only has a local unreleased tarball flow.
-- For normal user setup, do not ask the user to clone the repo or run a build
-  if a published prebuilt package already exists.
-- After `duoduo channel wechat start`, read `duoduo channel wechat logs` for
-  `QRCODE_READY:<path>`.
-- If the client can render local images, show the local PNG directly.
-- Resolve the WeChat state dir before using the QR subcommand. Prefer
-  `WECHAT_STATE_DIR` from `~/.config/duoduo/.env`; otherwise use the default
-  `~/.aladuo/channel-wechat`. If logs already contain `QRCODE_READY:<path>`,
-  the directory name of that PNG is also the correct state dir.
-- Only use `qrcode-terminal` for a current pending login. A stale `qrcode.png`
-  left in the state dir is not enough; first confirm the current `start` or
-  `logs` output contains a fresh `QRCODE_READY:<path>`.
-- In stdio or TTY flows, prefer the plugin QR subcommand instead of parsing
-  multiline logs. Use `duoduo-wechat qrcode-terminal --state-dir <dir>` when
-  the package bin is available.
-- If `duoduo-wechat` is not on `PATH`, inspect the installed channel manifest
-  to find `packageRoot`, then run
-  `node <packageRoot>/dist/plugin.js qrcode-terminal --state-dir <dir>`. In
-  default host-mode installs the manifest lives at
-  `<runtime_dir>/plugins/channels/wechat/manifest.json`.
-- If the QR subcommand is not available, output the PNG path and the next step.
-- For remote channels such as Feishu, read the QR path from logs and send the
-  image to the user.
-
-## Configure Channel Behavior
-
-Use kind descriptors for defaults that should apply to every channel of a kind.
-Use instance descriptors for one specific channel only.
-
-- Kind descriptor:
-  `kernel_dir/config/<kind>.md`
-- Instance descriptor:
-  `runtime_dir/var/channels/<channel_id>/descriptor.md`
-
-Typical editable keys:
+Editable keys by hand:
 
 - `new_session_workspace`
 - `prompt_mode`
@@ -162,34 +65,51 @@ Typical editable keys:
 - `disallowedTools`
 - `additionalDirectories`
 
-v0.5 adds three more keys that are usually written by `channel.spawn` (not
-edited by hand): `runtime`, `bound_by`, `bound_at`. See
-[references/channel-config-model.md](references/channel-config-model.md) for
-the full list and the priority-order fix for `new_session_workspace`.
+v0.5 adds three keys normally written by `channel.spawn` (not hand-
+edited): `runtime`, `bound_by`, `bound_at`. See
+[references/channel-config-model.md](references/channel-config-model.md)
+for the full list and the `new_session_workspace` priority rules.
 
-Use [scripts/patch_markdown_frontmatter.py](scripts/patch_markdown_frontmatter.py)
-for frontmatter edits that should preserve comments and the Markdown body.
-For prompt-body rewrites, use `replace-body` or apply a direct patch when that is
-clearer.
+For frontmatter edits that must preserve Markdown body and comments,
+use [scripts/patch_markdown_frontmatter.py](scripts/patch_markdown_frontmatter.py).
 
-## Prompt Editing Rules
+## Reset a bound channel
+
+When a channel's descriptor, session, or message history is stale
+and the user wants a clean slate:
+
+```bash
+bash scripts/reset-feishu-session.sh --channel-id feishu-<chat_id>
+duoduo channel feishu stop && duoduo channel feishu start
+```
+
+The script moves descriptor + session dir + ingress + outbox-record +
+outbox-replay to `.trash/` with timestamps (reversible). The plugin
+restart is mandatory — it caches subscription state in memory.
+
+Read [references/reset-feishu-session.md](references/reset-feishu-session.md)
+for what the script cleans and why each piece matters. When users
+report "bot quotes old messages after I reset", they hit the reason
+this script exists.
+
+## Prompt editing
 
 - The Markdown body of `kernel/config/<kind>.md` is the kind prompt.
 - The Markdown body of `descriptor.md` is the instance prompt.
-- Instance frontmatter and prompt override kind defaults for that one channel.
-- Preserve guidance comments in bootstrapped files whenever possible.
+- Instance frontmatter and prompt override kind defaults.
+- Preserve bootstrap-seeded guidance comments when possible.
 
-## Operating Rules
+## Operating rules
 
-- Prefer the smallest scope that matches the request: kind-level for defaults,
-  instance-level for a single room or session surface.
-- After changing channel credentials in `~/.config/duoduo/.env`, restart the
-  affected channel process.
-- After installing a new plugin, verify with `duoduo channel list` and
-  `duoduo channel <type> status`.
-- If the channel still fails after credentials, install state, and runtime
-  config look correct, treat it as a likely product or plugin issue and use the
-  public issue flow from
+- Prefer the smallest scope: kind-level for defaults, instance-level
+  for a single room or session surface.
+- After editing `~/.config/duoduo/.env` channel credentials, restart
+  the affected channel process (not just the daemon).
+- After installing a new plugin, verify with `duoduo channel list`
+  and `duoduo channel <type> status`.
+- If a channel fails after credentials, install state, and runtime
+  config all look correct, treat it as a likely product or plugin
+  issue — see
   [../duoduo-admin/references/issue-reporting.md](../duoduo-admin/references/issue-reporting.md).
-- If the request is really about telemetry, cadence, debug logs, or Codex,
-  hand off to `duoduo-runtime-admin`.
+- If the request is really about telemetry, cadence, debug logs, or
+  Codex, hand off to `duoduo-runtime-admin`.
