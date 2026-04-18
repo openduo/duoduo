@@ -43,44 +43,44 @@ needs a fuller explanation of how these surfaces fit together.
 
 ## Upgrade And Restart
 
-When the user asks whether an update is available, check both:
+"Is there an update?" → check both:
 
 ```bash
 duoduo --version
 npm view @openduo/duoduo version
 ```
 
-Compare the installed version with the latest published npm version.
-
-When the user asks to update duoduo itself in host mode, use this sequence:
+Standard upgrade path (works for minor bumps within the same major):
 
 ```bash
 npm install -g @openduo/duoduo@latest
 duoduo daemon restart
 ```
 
-Explain why the restart matters: the daemon is already running as a detached
-background process, so installing a newer CLI package does not hot-swap the
-existing daemon process.
+The restart matters because the daemon is a detached background
+process — installing a newer CLI package does not hot-swap it.
 
-### Upgrading to v0.5 (Feishu channel semantics change)
+### Crossing major boundaries (including v0.5)
 
-v0.5 introduces owner-DM auto-spawn and a `/setup` routing matrix for
-the Feishu channel. If the user is upgrading from a pre-v0.5 install
-AND has a Feishu channel configured, use /duoduo-channel-admin for detailed instructions, and focus on the
-sections "Main session contract" and "Security hygiene" BEFORE making
-behavioral changes on their behalf. In particular, warn them that:
+When the upgrade crosses a behavioral boundary (v0.5 added Feishu
+main-session semantics and a new trust model for DMs), follow the
+full playbook instead of the one-liner above:
 
-- Without `FEISHU_BOT_OWNER` set, any first DM sender is treated as
-  owner for that session's auto-spawn (zero-config bootstrap mode).
-- `dmPolicy=open` is the default, so combining zero-config with the
-  default means strangers who reach the bot can trigger auto-spawn.
-- Production configurations should set `FEISHU_BOT_OWNER` and
-  `FEISHU_DM_POLICY=allowlist` before exposing the bot broadly.
+Read [references/upgrade-playbook.md](references/upgrade-playbook.md).
 
-Pre-v0.5 bindings (descriptors without `bound_by`) continue to work
-without migration — their `/setup` routes through the secondary card
-path, preserving operator reach.
+To collect the facts the playbook branches on, run the preflight:
+
+```bash
+bash scripts/v05-upgrade-preflight.sh
+```
+
+The script outputs markdown listing the installed version, daemon
+status, channel inventory, Feishu env keys, and descriptor shapes,
+then recommends one of Branch B / C / D. It is an **accelerator,
+not a required path**: if the script fails to run or the environment
+is unusual, the playbook's Step 1 fallback enumerates every probe
+the script performs as an individual command so the agent can
+reproduce it by hand.
 
 ## Find Problems And Escalate
 
