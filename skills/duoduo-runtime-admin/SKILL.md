@@ -1,6 +1,6 @@
 ---
 name: duoduo-runtime-admin
-description: "Manage host-mode duoduo daemon-level settings and diagnostics. Use when the request involves: inspecting daemon status/config/logs, toggling Codex runtime availability (ALADUO_CODEX_ENABLED / sandbox), log verbosity (ALADUO_LOG_LEVEL), telemetry persistence, cadence interval, other ALADUO_* env keys in ~/.config/duoduo/.env, or running-daemon diagnostics. Also trigger for Chinese: 启用 codex runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, 看看 duoduo daemon 配置, 查 daemon 日志. This skill does NOT handle channel-kind settings (Feishu/WeChat/ACP) — those live in duoduo-channel-admin."
+description: "Manage host-mode duoduo daemon-level settings and diagnostics. Use when the request involves: inspecting daemon status/config/logs, Codex runtime setup (auto-detected from v0.5: install codex + run `codex login`) or sandbox (ALADUO_CODEX_SANDBOX), log verbosity (ALADUO_LOG_LEVEL), telemetry persistence, cadence interval, other ALADUO_* env keys in ~/.config/duoduo/.env, or running-daemon diagnostics. Also trigger for Chinese: 启用 codex runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, 看看 duoduo daemon 配置, 查 daemon 日志. This skill does NOT handle channel-kind settings (Feishu/WeChat/ACP) — those live in duoduo-channel-admin."
 ---
 
 # Duoduo Runtime Admin
@@ -41,8 +41,8 @@ Typical keys:
 - `ALADUO_LOG_SESSION_LIFECYCLE`
 - `ALADUO_TELEMETRY_ENABLED`
 - `ALADUO_CADENCE_INTERVAL_MS`
-- `ALADUO_CODEX_ENABLED`
-- `ALADUO_CODEX_SANDBOX`
+- `ALADUO_CODEX_SANDBOX` (codex auto-detected from v0.5 onward; no
+  enable flag — see codex-runtime reference)
 
 After changing daemon env settings, run:
 

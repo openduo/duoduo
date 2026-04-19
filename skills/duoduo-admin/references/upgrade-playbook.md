@@ -151,6 +151,36 @@ continue to work without migration. Their `/setup`:
 No action required for legacy descriptors unless the user reports a
 specific problem with one.
 
+## SDK architecture change landing in v0.5
+
+v0.5 upgrades the bundled `@anthropic-ai/claude-agent-sdk` to
+0.2.114, which ships the Claude Code runtime as a per-platform
+native binary via npm optional dependencies (e.g.
+`@anthropic-ai/claude-agent-sdk-darwin-arm64`). Implications for
+upgraders:
+
+- `npm install -g @openduo/duoduo@0.5.x` will download the
+  platform-specific binary (~200 MB) automatically. On slow
+  networks this is the new long step; previous versions only
+  fetched JS.
+- Installs with `npm install --omit=optional` or
+  `NPM_CONFIG_OPTIONAL=false` will succeed but the daemon will
+  refuse to start, with an actionable error naming the missing
+  `@anthropic-ai/claude-agent-sdk-<platform>-<arch>` package.
+  Reinstall without the flag, or set `CLAUDE_CODE_EXECUTABLE`
+  to a compatible binary you already have.
+- Users who previously installed `@anthropic-ai/claude-code` as
+  a separate global package can uninstall it — duoduo now carries
+  its own copy via the SDK. Keeping the standalone install is
+  harmless but not required.
+- Third-party compatible endpoints (sglang, LiteLLM proxies,
+  older Bedrock/Vertex) may reject `thinking.type=adaptive`
+  requests with HTTP 4xx. The daemon now surfaces this as a
+  `[duoduo:drain-error]` reply instead of silence. The common
+  workaround is setting `DISABLE_ADAPTIVE=1 DISABLE_THINKING=1
+  DISABLE_INTERLEAVED_THINKING=1 MAX_THINKING_TOKENS=0` in
+  `~/.config/duoduo/.env` and restarting the daemon.
+
 ## Step 3 — Post-upgrade verification
 
 Always verify:

@@ -2,6 +2,121 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.0-rc.1] - 2026-04-19
+
+First release candidate of the v0.5 line. Published to the `next` npm
+dist-tag; `npm install -g @openduo/duoduo` keeps resolving v0.4.6 until
+v0.5.0 ships as stable. Read the Upgrade Notes below before updating an
+existing v0.4.x install — especially if you use a Feishu channel.
+
+### Breaking / Migration
+
+- **`@anthropic-ai/claude-agent-sdk` 0.2.92 → 0.2.114**: the Claude Code
+  runtime is now a per-platform native binary delivered via optional
+  dependencies (e.g. `@anthropic-ai/claude-agent-sdk-darwin-arm64`).
+  Effects for upgraders:
+  - Installing `@openduo/duoduo@0.5.x` automatically pulls a ~200 MB
+    native binary for your platform. On slow networks this is the new
+    long step.
+  - Installs that pass `npm install --omit=optional` or set
+    `NPM_CONFIG_OPTIONAL=false` complete, but the daemon refuses to
+    start at boot with an actionable error naming the missing platform
+    package. Reinstall without those flags, or set
+    `CLAUDE_CODE_EXECUTABLE` to a compatible binary you already have.
+  - A previously-installed global `@anthropic-ai/claude-code` package
+    is no longer needed. Uninstalling it is safe; keeping it is
+    harmless.
+- **Feishu v0.5 main-session UX** (channel-feishu): owner DMs are now
+  tied to a main session that's spawned automatically on first use and
+  is immune to `/setup`; secondary DMs don't get the default workspace
+  (`⌂`) entry; legacy DMs from pre-v0.5 remain usable. `FEISHU_BOT_OWNER`
+  must be set in production — otherwise there is no owner-DM lock and
+  the main-session guarantee is weakened. See the v0.5 admin skill for
+  the full trust model.
+- **`FEISHU_GROUP_CONTEXT_REMINDER` default flips on** (channel-feishu):
+  the "since last reply" passive context capture introduced in v0.4.6
+  as an opt-in is now enabled by default. Operators who want the old
+  behavior can still set `FEISHU_GROUP_CONTEXT_REMINDER=0` / `false` /
+  `no` in `~/.config/duoduo/.env`, but the flag is **deprecated** and
+  will be removed in a future release — the capture behavior is
+  stable enough that the per-deployment knob is no longer worth
+  carrying.
+- **Codex runtime auto-detection** (removes `ALADUO_CODEX_ENABLED`):
+  the env flag that previously gated whether ManageJob exposed the
+  `runtime: "codex"` option is gone. The daemon now probes
+  `codex --version` and `codex login status` at boot: if the CLI is
+  installed and the user is logged in, codex is advertised; otherwise
+  it's hidden and any `runtime: "codex"` request silently falls back
+  to Claude. Remove any `ALADUO_CODEX_ENABLED=...` line from
+  `~/.config/duoduo/.env` — it's ignored now. `ALADUO_CODEX_SANDBOX`
+  keeps working unchanged.
+- **Third-party model endpoints**: compatible endpoints (sglang,
+  LiteLLM proxies, older Bedrock/Vertex) that reject
+  `thinking.type=adaptive` now surface the HTTP 4xx back to the user as
+  a `[duoduo:drain-error]` reply instead of leaving the daemon silent.
+  The common workaround is `DISABLE_ADAPTIVE=1 DISABLE_THINKING=1
+  DISABLE_INTERLEAVED_THINKING=1 MAX_THINKING_TOKENS=0` in
+  `~/.config/duoduo/.env`.
+
+### New Capabilities
+
+- **`duoduo onboard` subcommand**: dedicated, automation-safe entrypoint
+  that runs the wizard and exits (no fall-through to the chat REPL).
+  Reads all decisions from environment variables in non-TTY contexts
+  (`ALADUO_RUNTIME_MODE`, `ALADUO_CLAUDE_AUTH_SOURCE`, `ALADUO_WORK_DIR`,
+  `ANTHROPIC_API_KEY` / `ANTHROPIC_AUTH_TOKEN` / `ANTHROPIC_BASE_URL`,
+  `DUODUO_ONBOARD_YES`). Exits with code 2 and prints the full env-var
+  recipe on stderr when required inputs are missing, so the calling
+  agent can self-correct.
+- **`DUODUO_NODE_BIN` wrapper override** (#50): the `duoduo` bash
+  wrapper honors this env as an absolute path to `node`, bypassing
+  `PATH`. Lets GUI managers ship a private Node runtime and lets
+  agents working inside `bash -lc` survive login-shell PATH resets.
+- **Drain-error visibility**: when a daemon turn fails for any reason
+  other than Skip/abort (SDK error, compatible-endpoint rejection,
+  MCP failure), the runner now writes a `[duoduo:drain-error]`
+  outbox reply to the anchor event's channel and a matching
+  `agent.error` spine event, instead of silently dropping the turn.
+- **Channel instance as a first-class citizen** (design doc +
+  descriptor schema extension): descriptors carry `runtime`
+  (`claude`|`codex`) and spawn provenance; new `channel.describe` /
+  `channel.spawn` RPCs expose the instance lifecycle to channel
+  plugins. Enables per-instance runtime selection without restart.
+- **Feishu `/setup` slash command** (channel-feishu): setup card with
+  hybrid permission model, per-channel `require_mention`, i18n-aware
+  rendering (zh-CN default), dual-send card-action with owner DM cc,
+  and "first-ingress" card that triggers before the first real reply.
+- **`duoduo channel <kind> doctor` subcommand**: per-plugin three-layer
+  diagnostic that runs while the plugin is stopped and prints a
+  remediation checklist. Feishu implements it first (startup preflight
+  + env validation).
+
+### Bug Fixes
+
+- Feishu channel: 10+ follow-up fixes from the v0.5 main-session round
+  of adversarial review (setup card descriptor caching, spawn +
+  activeSessionKeys ordering, button name validation, partial-update
+  spawn, initial_option, display-text echo tolerance).
+- Release: `build:release` now rebuilds every channel plugin bundle
+  before packing, so the subsequent `pnpm pack` in each package picks
+  up the latest code instead of stale `build:plugin` output.
+- Stdio: removed the `/task` command and `TaskPanel` UI (the Task
+  system was replaced by Jobs in v0.4.2).
+
+### Infrastructure
+
+- **Linux distribution verification harness**
+  (`tests/distribution/linux/`): 5 end-to-end scenarios that install
+  from the exact tarballs CI ships to npm and verify claude_code_local
+  / anthropic_api_key onboard paths, the SDK preflight failure mode
+  under `--omit=optional`, and a real `claude -p` agent driving
+  `duoduo onboard` end-to-end (with a stdio ingress smoke test). All
+  five are required to pass before tagging a stable release.
+- **Release workflow pre-release handling**: tags containing a hyphen
+  (`0.5.0-rc.1`, etc.) publish to the `next` npm dist-tag, set
+  `--prerelease` on the GitHub Release, and do not assume `latest` on
+  the Docker image.
+
 ## [v0.4.6] - 2026-04-14
 
 ### Features

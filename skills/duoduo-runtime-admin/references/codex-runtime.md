@@ -14,18 +14,29 @@ codex --version
 codex login
 ```
 
-## Host-Mode Gate
+## Host-Mode Gate (v0.5+)
 
-Persistent keys:
+Codex is **auto-detected** from v0.5 onward. There is no
+`ALADUO_CODEX_ENABLED` env var anymore. If `codex` is installed on
+`PATH` and `codex login status` reports "logged in", the daemon
+advertises `runtime: "codex"` on ManageJob and accepts it in job
+definitions. Otherwise codex is hidden entirely and any
+`runtime: "codex"` request falls back to Claude silently.
 
-- `ALADUO_CODEX_ENABLED=1`
-- optional `ALADUO_CODEX_SANDBOX=workspace-write`
+Optional persistent key:
 
-These belong in `~/.config/duoduo/.env` and usually require:
+- `ALADUO_CODEX_SANDBOX=workspace-write` (or `read-only` /
+  `danger-full-access`) — sandbox mode for codex-runtime jobs.
+
+The daemon probes at boot. If the user installs codex or runs
+`codex login` while the daemon is running, ask them to restart:
 
 ```bash
 duoduo daemon restart
 ```
+
+If the daemon seems not to see a freshly-logged-in codex, check with
+`codex login status` directly to confirm the CLI side.
 
 ## Scope
 

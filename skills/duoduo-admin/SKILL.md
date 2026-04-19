@@ -82,6 +82,33 @@ is unusual, the playbook's Step 1 fallback enumerates every probe
 the script performs as an individual command so the agent can
 reproduce it by hand.
 
+## v0.5 capabilities you should know about
+
+Three new surfaces landed in v0.5 that change how agents and
+automation talk to duoduo. Treat them as additions, not rewrites —
+bare `duoduo` still works the same way as before.
+
+- **`duoduo onboard`**: dedicated subcommand that runs the wizard
+  and exits (never drops into the chat REPL). This is the correct
+  entrypoint for any automation or agent call. In non-TTY contexts
+  it reads its answers from env vars (at minimum
+  `ALADUO_RUNTIME_MODE`, `ALADUO_CLAUDE_AUTH_SOURCE`) instead of
+  prompting. If those are missing, it exits with code 2 and prints
+  the full env-var recipe on stderr — forward that recipe to the
+  caller rather than guessing.
+- **`DUODUO_NODE_BIN` env**: when set, the `duoduo` bash wrapper
+  uses that absolute path instead of resolving `node` via PATH.
+  Use this when a caller environment resets PATH (`bash -lc` in
+  agent spawn, GUI managers shipping a private Node runtime, etc.).
+  See openduo/duoduo#50 for the full rationale.
+- **User-visible drain errors**: when the daemon's internal SDK
+  turn fails (most commonly: third-party compatible endpoints that
+  don't accept Claude Code's current wire schema), the user now
+  sees a text reply prefixed with `[duoduo:drain-error]` instead
+  of silence. The message carries the original error and suggests
+  `DISABLE_ADAPTIVE=1 DISABLE_THINKING=1 DISABLE_INTERLEAVED_THINKING=1 MAX_THINKING_TOKENS=0`
+  in `~/.config/duoduo/.env` as the common workaround.
+
 ## Find Problems And Escalate
 
 When the user is reporting a bug or unexpected behavior:

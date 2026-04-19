@@ -40,8 +40,8 @@ binary or env from your shell.
 - `ALADUO_LOG_SESSION_LIFECYCLE`
 - `ALADUO_TELEMETRY_ENABLED`
 - `ALADUO_CADENCE_INTERVAL_MS`
-- `ALADUO_CODEX_ENABLED`
-- `ALADUO_CODEX_SANDBOX`
+- `ALADUO_CODEX_SANDBOX` (codex is auto-detected from v0.5; there is
+  no enable flag. See [codex-runtime.md](codex-runtime.md).)
 
 ## Practical Rules
 
