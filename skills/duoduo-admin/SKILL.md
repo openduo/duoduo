@@ -1,6 +1,6 @@
 ---
 name: duoduo-admin
-description: "Explain and manage a host-mode duoduo installation after onboarding. Use when the user asks how duoduo works, how stdio/daemon/channel/session fit together, where duoduo stores config and state, how to inspect current setup, how to upgrade duoduo itself (including migrating to v0.5), where something lives on disk (kernel_dir, runtime_dir, .env, descriptor.md), or for broad 'configure duoduo' / 'fix my duoduo' requests that haven't narrowed to a specific channel or runtime setting yet. Also trigger for Chinese: 帮我理解 duoduo, duoduo 是怎么工作的, 看看我现在的 duoduo 配置, 帮我管理 duoduo, 升级 duoduo, 升级到 v0.5 要注意什么, duoduo 哪个路径存什么."
+description: "Explain and manage a host-mode duoduo installation after onboarding. Use when the user asks how duoduo works, how stdio/daemon/channel/session fit together, where duoduo stores config and state, how to inspect current setup, how to upgrade duoduo itself (including migrating to v0.5), where something lives on disk (kernel_dir, runtime_dir, .env, descriptor.md), how to archive or recover a specific session (`duoduo session archive`, sessions-archive directory, restoring an archived session), or for broad 'configure duoduo' / 'fix my duoduo' requests that haven't narrowed to a specific channel or runtime setting yet. Also trigger for Chinese: 帮我理解 duoduo, duoduo 是怎么工作的, 看看我现在的 duoduo 配置, 帮我管理 duoduo, 升级 duoduo, 升级到 v0.5 要注意什么, duoduo 哪个路径存什么, 归档 session, 删掉 session, 恢复归档 session."
 ---
 
 # Duoduo Admin
@@ -108,6 +108,19 @@ bare `duoduo` still works the same way as before.
   of silence. The message carries the original error and suggests
   `DISABLE_ADAPTIVE=1 DISABLE_THINKING=1 DISABLE_INTERLEAVED_THINKING=1 MAX_THINKING_TOKENS=0`
   in `~/.config/duoduo/.env` as the common workaround.
+- **`duoduo session archive <session_key>`**: new subcommand that
+  archives every durable artifact of one session in one call
+  (session dir, ingress snapshots, outbox records, channel
+  descriptor). "Archive" literally — nothing is deleted, everything
+  moves to `var/<kind>-archive/` where the operator can `mv` it
+  back. Refuses when the target has a live actor; cancel it first
+  via `/cancel`. This is the right tool when the dashboard shows a
+  session that should no longer exist (e.g. after a channel reset)
+  or when you want a clean slate for one specific session without
+  touching the rest of the runtime. The
+  `reset-feishu-session.sh` script in `duoduo-channel-admin` drives
+  this CLI; read that script as a worked example if you need to
+  batch-archive per channel.
 
 ## Find Problems And Escalate
 
