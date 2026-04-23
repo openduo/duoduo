@@ -1,6 +1,6 @@
 ---
 name: duoduo-runtime-admin
-description: "Manage host-mode duoduo daemon-level settings and diagnostics. Use when the request involves: inspecting daemon status/config/logs, Codex runtime setup (auto-detected from v0.5: install codex + run `codex login`) or sandbox (ALADUO_CODEX_SANDBOX), log verbosity (ALADUO_LOG_LEVEL), telemetry persistence, cadence interval, other ALADUO_* env keys in ~/.config/duoduo/.env, or running-daemon diagnostics. Also trigger for Chinese: 启用 codex runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, 看看 duoduo daemon 配置, 查 daemon 日志. This skill does NOT handle channel-kind settings (Feishu/WeChat/ACP) — those live in duoduo-channel-admin."
+description: "Manage host-mode duoduo daemon-level settings and diagnostics. Use when the request involves: inspecting daemon status/config/logs, Codex runtime setup (auto-detected from v0.5: install codex + run `codex login`) or sandbox (ALADUO_CODEX_SANDBOX), log verbosity (ALADUO_LOG_LEVEL), telemetry persistence, cadence interval, other ALADUO_* env keys in ~/.config/duoduo/.env, running-daemon diagnostics, or refreshing subconscious partition prompts from a published duoduo tag. Also trigger for Chinese: 启用 codex runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, 看看 duoduo daemon 配置, 查 daemon 日志, 升级潜意识, 刷新潜意识, 更新分区提示词, 同步 subconscious, refresh subconscious, update partition prompts. This skill does NOT handle channel-kind settings (Feishu/WeChat/ACP) — those live in duoduo-channel-admin."
 ---
 
 # Duoduo Runtime Admin
@@ -62,6 +62,21 @@ Be precise:
 
 Do not describe Codex enablement as "stdio now runs on Codex" unless the runtime
 actually supports that behavior in the inspected version.
+
+## Subconscious Refresh
+
+Partition prompts under `<kernel>/subconscious/` are NOT touched by a
+`npm install` upgrade — install merges missing files only, preserving
+local edits and agent self-programming. When the user wants the
+revised partition prompts shipped with a newer duoduo version, they
+must refresh explicitly.
+
+Read [references/subconscious-refresh.md](references/subconscious-refresh.md)
+before making any changes. It covers preconditions (clean kernel git
+tree, confirm target tag), the diff-before-overwrite discipline, how
+to handle user-authored partitions and local edits to shipped
+partitions, the commit-as-rollback-point pattern, and why no daemon
+restart is required after refresh.
 
 ## Cadence And Telemetry
 

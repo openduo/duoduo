@@ -181,6 +181,62 @@ upgraders:
   DISABLE_INTERLEAVED_THINKING=1 MAX_THINKING_TOKENS=0` in
   `~/.config/duoduo/.env` and restarting the daemon.
 
+## Subconscious prompts are NOT auto-upgraded
+
+A duoduo version upgrade installs new code. It does **not** change
+the partition prompt files already present under
+`<kernel>/subconscious/` on an existing installation. The install
+logic merges missing files only — this deliberately preserves
+local edits, agent self-programming, and user-authored partitions.
+
+The consequence: if v0.5.1 ships a revised `pattern-tracker` prompt
+and the user upgraded from v0.5.0, their `pattern-tracker/CLAUDE.md`
+is still the v0.5.0 version after the upgrade.
+
+### When to bring it up
+
+Mention this explicitly when:
+
+- Release notes for the target version mention subconscious /
+  partition prompt changes.
+- The user asks why their behavior looks the same after upgrading.
+- The user asks how the subconscious partitions evolve between
+  versions.
+
+### How to refresh
+
+Refreshing the subconscious is a separate, opt-in action. Each
+published duoduo version has a matching `v<X.Y.Z>` tag on
+`openduo/duoduo` that carries the reference `subconscious/` tree for
+that version. Pulling that tree into the kernel is:
+
+1. Fetch the target tag's `subconscious/` directory from the public
+   repo.
+2. Compare it to the kernel's current `subconscious/`.
+3. Overwrite only the files that exist upstream (so user-authored
+   partitions and local edits on unchanged files are untouched).
+4. Commit the result in the kernel git repo, producing a clear
+   rollback point.
+5. Wait one cadence interval — prompts reload from disk each tick;
+   no daemon restart needed.
+
+The full decision guide and command shapes for each step — including
+how to handle user edits to shipped partitions, what to do if the
+target tag does not exist, and how to revert — live in
+[`duoduo-runtime-admin/references/subconscious-refresh.md`](../../duoduo-runtime-admin/references/subconscious-refresh.md).
+
+### When NOT to refresh
+
+- The user never mentioned subconscious behavior and their release
+  notes don't flag prompt changes. Stay silent; don't push a refresh
+  they didn't ask for.
+- The user has substantial self-programming in shipped partition
+  files (not new partitions, but edits to ones that came from the
+  public repo). Discuss the trade-off before overwriting.
+- The kernel git tree is dirty. Ask the user to commit or stash
+  first; refreshing on a dirty tree mixes unrelated changes into the
+  refresh commit.
+
 ## Step 3 — Post-upgrade verification
 
 Always verify:

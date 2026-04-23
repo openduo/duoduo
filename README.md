@@ -170,6 +170,32 @@ cover:
   and Codex runtime gates
 - investigating problems and preparing public-safe issues for `openduo/duoduo`
 
+## Subconscious Partitions
+
+Every release tag on this repo carries the reference subconscious
+partition prompts shipped with that duoduo version under
+[`subconscious/`](./subconscious/). The tree mirrors the layout installed
+into the kernel directory (`<kernel>/subconscious/`) at fresh install
+time.
+
+**Why it's published here.** A `npm install` upgrade does not overwrite
+an existing kernel's partition prompts — the install logic merges
+missing files only, deliberately preserving agent self-programming and
+local edits. When a new duoduo version ships revised partition prompts,
+existing users are not automatically on them. This directory is the
+canonical reference for what each tag considers "default" subconscious,
+so operators can explicitly refresh their kernel against a chosen tag.
+
+**How to refresh.** The host-mode skill `duoduo-runtime-admin` carries
+the step-by-step refresh procedure, including preconditions, the
+diff-before-overwrite discipline, how to handle user-authored
+partitions, and the git-commit-as-rollback-point pattern. See
+[`skills/duoduo-runtime-admin/references/subconscious-refresh.md`](./skills/duoduo-runtime-admin/references/subconscious-refresh.md).
+
+**When not to refresh.** Most releases do not change partition prompts.
+Read the release notes first. If prompts did not change, there is
+nothing to refresh.
+
 ## Packages
 
 | Package                   | Description                          |
