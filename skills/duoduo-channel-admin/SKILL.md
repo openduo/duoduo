@@ -83,8 +83,10 @@ bash scripts/reset-feishu-session.sh --channel-id feishu-<chat_id>
 duoduo channel feishu stop && duoduo channel feishu start
 ```
 
-The script moves descriptor + session dir + ingress + outbox-record +
-outbox-replay to `.trash/` with timestamps (reversible). The plugin
+The script calls `duoduo session archive <session_key>` for every
+session that references the channel. That RPC moves the session dir +
+ingress + outbox records + channel descriptor under
+`var/<kind>-archive/` (timestamped, reversible via `mv`). The plugin
 restart is mandatory — it caches subscription state in memory.
 
 Read [references/reset-feishu-session.md](references/reset-feishu-session.md)
