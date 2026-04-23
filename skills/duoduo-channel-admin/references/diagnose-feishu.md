@@ -53,8 +53,10 @@ bash scripts/reset-feishu-session.sh --channel-id feishu-<chat_id>
 duoduo channel feishu stop && duoduo channel feishu start
 ```
 
-The script moves session + ingress + outbox-record + outbox-replay +
-descriptor to `.trash/` with timestamps. See
+The script calls `duoduo session archive <session_key>` per matched
+session; the daemon atomically moves session + ingress + outbox-record +
+outbox-replay + descriptor to their `var/<kind>-archive/` siblings
+(timestamped, reversible via `mv`). See
 [reset-feishu-session.md](reset-feishu-session.md) for what it does
 and why each step matters.
 

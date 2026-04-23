@@ -8,24 +8,34 @@ Use this when a chat has accumulated stale state and you want the next
   clean slate.
 - A channel is bound to a workspace that no longer exists on disk.
 
-The Feishu plugin can run on a DIFFERENT host from the daemon — this is a
-supported deployment (plugin host talks to daemon over WebSocket JSON-RPC).
-State is therefore split across two locations. Both must be reset and the
-plugin MUST be restarted, otherwise the plugin keeps an in-memory map of
-the old `session_key` → chat binding even after the on-disk state is gone.
+Since duoduo 0.5.0 the daemon exposes a single RPC — `session.archive` —
+and a matching CLI `duoduo session archive <session_key>`. The CLI
+archives the session dir, ingress snapshots, outbox records, and the
+channel descriptor in **one atomic call**. "Archive" literally: nothing
+is deleted, everything moves to a `<name>-archive/` sibling so recovery
+is a `mv` back.
+
+The script in this skill is a thin orchestrator:
+
+1. On the daemon host, scan `state.json` files to find every session_key
+   that points at the target channel, then invoke the CLI once per key.
+2. On the plugin host, prune `watched-sessions.json` so the plugin stops
+   re-subscribing to the old session_key, then print a restart reminder.
 
 ## Where state lives
 
-| Host              | Path                                         | What it holds                            |
-| ----------------- | -------------------------------------------- | ---------------------------------------- |
-| Daemon host       | `~/.aladuo/var/sessions/<hash>/`             | One session dir per session_key          |
-| Daemon host       | `~/.aladuo/var/channels/<channel_id>/`       | Channel descriptor (workspace + runtime) |
-| Feishu plugin host| `~/.cache/feishu-channel/watched-sessions.json` | Plugin's WebSocket subscriptions      |
+| Host              | Path                                         | What it holds                            | Owner                     |
+| ----------------- | -------------------------------------------- | ---------------------------------------- | ------------------------- |
+| Daemon host       | `~/.aladuo/var/sessions/<hash>/`             | Session state.json, mailbox, inbox       | `duoduo session archive`  |
+| Daemon host       | `~/.aladuo/var/ingress/<hash>/`              | Raw inbound message snapshots            | `duoduo session archive`  |
+| Daemon host       | `~/.aladuo/var/outbox/<kind>/*.json`         | Outbound records (filtered by session_key)| `duoduo session archive`  |
+| Daemon host       | `~/.aladuo/var/outbox/replay/*.jsonl`        | Reply replay log (one file per session_key)| `duoduo session archive`|
+| Daemon host       | `~/.aladuo/var/channels/<channel_id>/`       | Channel descriptor (workspace + runtime) | `duoduo session archive`  |
+| Feishu plugin host| `~/.cache/feishu-channel/watched-sessions.json` | Plugin's WebSocket subscriptions      | this script (file edit)   |
 
-When daemon and plugin run on the same host (the common case), both paths
-sit under the same `$HOME` and the script's default `--role=auto` handles
-them in one pass. For a split deployment run the script on each host with
-the matching `--role`.
+When daemon and plugin run on the same host (the common case), the
+script's default `--role=auto` handles both. For a split deployment run
+the script on each host with the matching `--role`.
 
 ## The script
 
@@ -33,23 +43,14 @@ the matching `--role`.
 skipping any step whose target does not exist:
 
 1. **daemon host**: grep `~/.aladuo/var/sessions/*/state.json` for
-   `source_channel_id == <channel_id>`, move each matching dir to
-   `sessions/.trash/<hash>.<ts>`.
-2. **daemon host**: for each session hash moved in step 1, also move
-   `~/.aladuo/var/ingress/<hash>/` to `ingress/.trash/<hash>.<ts>`.
-   This is CRITICAL — the ingress directory stores raw JSON-RPC
-   snapshots of every inbound message, and agents can read them via
-   `ManageSession(show)` → the filesystem pointer it prints. Leaving
-   ingress behind lets a fresh session quote historical messages
-   verbatim, making the reset look broken.
-3. **daemon host**: move `~/.aladuo/var/channels/<channel_id>/` to
-   `channels/.trash/<channel_id>.<ts>` — unless `--keep-descriptor`.
-4. **plugin host**: rewrite `~/.cache/feishu-channel/watched-sessions.json`,
+   `source_channel_id == <channel_id>`. For each match, extract the
+   `session_key` and call `duoduo session archive <key>`. The daemon
+   archives every durable artifact in one atomic step; the in-memory
+   `SessionIndex` observer fires so the dashboard stops showing the
+   session immediately.
+2. **plugin host**: rewrite `~/.cache/feishu-channel/watched-sessions.json`,
    removing every entry whose `session_key` contains the chat OpenID.
-5. **plugin host**: print a reminder to run `duoduo channel feishu stop && duoduo channel feishu start`.
-
-Nothing is deleted outright. Everything goes to a `.trash` sibling with a
-timestamp suffix so recovery is `mv` back.
+3. **plugin host**: print a reminder to run `duoduo channel feishu stop && duoduo channel feishu start`.
 
 ### Flags
 
@@ -57,13 +58,14 @@ timestamp suffix so recovery is `mv` back.
 | ----------------------- | ----------------------------------------------------------------------- |
 | `--channel-id <id>`     | Required. Shape: `feishu-oc_xxx`.                                        |
 | `--role auto`           | Default. Detect which halves exist on this host and run those.          |
-| `--role daemon`         | Only touch `~/.aladuo/`. Use on the daemon host of a split deployment.  |
-| `--role plugin`         | Only touch `~/.cache/feishu-channel/`. Use on the plugin host.          |
+| `--role daemon`         | Only touch the daemon via `duoduo session archive`.                     |
+| `--role plugin`         | Only touch `~/.cache/feishu-channel/`.                                  |
 | `--role both`           | Force both halves even if auto-detect would skip one.                   |
 | `--aladuo-home PATH`    | Override the daemon-host root (default `$HOME/.aladuo`).                |
 | `--plugin-cache PATH`   | Override the plugin cache root (default `$HOME/.cache/feishu-channel`). |
-| `--keep-descriptor`     | Leave the channel descriptor alone. Next `/setup` is a re-bind, not a first-time welcome. |
-| `--dry-run`             | Print the plan without modifying anything.                              |
+| `--duoduo-bin PATH`     | Absolute path to the `duoduo` CLI. Required when the binary is not on PATH (e.g. under the duoduo-manager install at `~/.duoduo-manager/bin/duoduo`). |
+| `--keep-descriptor`     | Legacy; currently a no-op (prints a warning). `session.archive` always archives the channel descriptor alongside the session. If you need a different behavior, file an issue. |
+| `--dry-run`             | Print the plan without touching the daemon or filesystem.               |
 
 ### Typical invocations
 
@@ -85,12 +87,11 @@ bash reset-feishu-session.sh --channel-id feishu-oc_5713a942f1e8e60d34b0ca644e34
 duoduo channel feishu stop && duoduo channel feishu start
 ```
 
-Keep the descriptor so the operator does not have to re-pick project/runtime
-but still wants a clean session:
+duoduo-manager install (no `duoduo` on PATH):
 
 ```bash
-bash reset-feishu-session.sh --channel-id feishu-oc_xxx --keep-descriptor
-duoduo channel feishu stop && duoduo channel feishu start
+bash reset-feishu-session.sh --channel-id feishu-oc_xxx \
+  --duoduo-bin ~/.duoduo-manager/bin/duoduo
 ```
 
 ## Finding the channel_id
@@ -102,6 +103,27 @@ The channel_id is `feishu-<chat_id>`. Get the chat_id from:
 - The plugin log entry `[bot] handleFeishuMessage entry chatId=…`.
 - The existing `~/.aladuo/var/channels/` listing on the daemon host.
 
+## Recovery — how to undo
+
+`session.archive` doesn't delete, it moves. Each target has an archive
+sibling under `~/.aladuo/var/`:
+
+| Live path                              | Archive path                                          |
+| -------------------------------------- | ----------------------------------------------------- |
+| `var/sessions/<hash>/`                 | `var/sessions-archive/<hash>/[.<ts>]`                 |
+| `var/ingress/<hash>/`                  | `var/ingress-archive/<hash>/[.<ts>]`                  |
+| `var/outbox/replay/<key>.jsonl`        | `var/outbox-archive/replay/<key>.<ts>.jsonl`          |
+| `var/outbox/<kind>/<file>.json`        | `var/outbox-archive/<kind>/<file>.<ts>.json`          |
+| `var/channels/<channel_id>/`           | `var/channels-archive/<channel_id>/[.<ts>]`           |
+
+To recover: `mv` the archive back to its live location. (The daemon does
+not re-scan archived dirs, so you may need to restart it for the restored
+session to become visible on the dashboard.)
+
+To **permanently** delete: after you're confident you won't need the
+state, `rm -rf ~/.aladuo/var/*-archive/`. Nothing in the daemon lifecycle
+cleans this up for you — by design.
+
 ## Why the restart is non-negotiable
 
 `watched-sessions.json` is read at plugin startup. The plugin caches the
@@ -112,13 +134,13 @@ restart forces the plugin to reload the pruned list.
 
 ## What NOT to reset this way
 
-- Active sessions currently being served by the runner. The script does not
-  check for attach state; if the daemon is mid-turn on a target session,
-  moving its dir out from under the runner will surface as a mailbox read
-  error. Stop the daemon (or at least confirm no drain is in flight) before
-  resetting sessions that were active in the last few seconds.
-- Sessions belonging to other channel kinds (stdio, ACP, WeChat). The grep
-  filter is scoped to one feishu channel_id; other kinds have different
-  `source_channel_id` shapes and are not touched.
-- Jobs. Job sessions persist independently under `var/jobs/`; this script
-  does not prune job state.
+- Active sessions currently being served by the runner. `duoduo session
+  archive` refuses (exit code 2, reason=`active`) when the target has a
+  live actor. Cancel the session first (e.g. via `/cancel` on the chat,
+  or by stopping the feishu plugin so its actors drop) and retry.
+- Sessions belonging to other channel kinds (stdio, ACP, WeChat). The
+  grep filter is scoped to one feishu channel_id; other kinds have
+  different `source_channel_id` shapes and are not touched. To archive
+  those manually, run `duoduo session archive <session_key>` directly.
+- Jobs. Job sessions persist independently under `var/jobs/`; archive
+  them via `ManageJob(action=archive)` on the agent side instead.
