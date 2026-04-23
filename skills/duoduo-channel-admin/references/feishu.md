@@ -30,7 +30,11 @@ subcommand — use `stop && start` when a full cycle is needed.
 ## Credentials
 
 Put `FEISHU_APP_ID` and `FEISHU_APP_SECRET` in `~/.config/duoduo/.env`.
-Source the creds from Feishu developer console:
+For the simplest setup, get the official bot `App ID` and `App Secret`
+from:
+`https://open.feishu.cn/page/openclaw?form=multiAgent`.
+
+The standard manual path is the Feishu developer console:
 `https://open.feishu.cn/app`.
 
 If the user pastes credentials directly in chat, warn them about
