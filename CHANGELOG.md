@@ -2,6 +2,98 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.0-rc.2] - 2026-04-24
+
+Second release candidate of the v0.5 line. Concentrates on session-lifecycle
+correctness (Phase 3 of the Registry → Derived View refactor), dashboard
+signal fidelity, and subconscious cost reduction. No user-visible API
+breakage since rc.1 — safe to upgrade.
+
+### Fixes
+
+- **Phase 3 legacy-registry sweep no longer resurrects archived sessions**:
+  on first post-upgrade daemon start, the one-shot migration from
+  `var/registry/sessions/` to `var/sessions/<hash>/state.json` used to
+  backfill a fresh `state.json` for every registry row — including rows
+  whose sessions had already been archived days earlier. The result was
+  ghost sessions reappearing on the dashboard with stale metadata. The
+  sweep now probes `var/sessions-archive/` and skips any entry whose
+  archive already exists (bare ref or collision-suffixed variant), so
+  the archive stays the terminal state.
+- **Dashboard KV-cache-rate no longer diluted by cache-unaware drains**:
+  the rate denominator used to sum `input_tokens` across all drains,
+  including providers that don't report cache fields at all (some compat
+  endpoints). Only drains that report a cache field (as a number —
+  including a legitimate 0) now contribute to the denominator.
+- **`session.archive` drops stale in-memory index entries even when disk
+  artifacts are already gone**: the `not_found` branch now calls
+  `SessionIndex.remove()` so dashboard stops reporting a session whose
+  live dir was removed out-of-band.
+- **Concurrent `channel.ack` during archive refused at entry**: prevents
+  delivery-cursor writers from creating files beside a just-renamed
+  session dir; observer re-read is now wrapped in the per-session state
+  lock and re-checks the archiving marker after the lock is taken.
+- **All session-dir writers consolidated on one per-session mutex**:
+  `ensureSessionDescriptor`, `writeSessionMeta`, `updateSessionRuntimeState`,
+  and `enqueueMailboxItem` now take the same lock that `archiveSessionDir`
+  takes. Closes the last class of "writer survives past archive's
+  liveness check and writes into a just-renamed path" races.
+- **Cadence scheduler skips due jobs whose session is being archived**:
+  prevents a cron firing concurrent with an in-flight `session.archive`
+  from spawning a new session under the same key while the archive
+  rename is mid-flight.
+- **`ManageSession(show)` is strictly read-only**: no longer materializes
+  a state.json just because the caller asked for info.
+- **`discoverChannelId` prefers the newest archive during retry**:
+  partial-archive retries now resolve the owning channel from the
+  freshest archived state.json rather than an orphaned bare-ref stub.
+- **Runtime image output delivery no longer duplicates attachments**.
+- **CLI stdin pollution and input-dropping bugs in the Ink chat UI
+  eliminated** — typing during a running turn no longer loses keystrokes.
+- **Codex transient reconnect notifications downgraded to log level**
+  (no longer spam the conscious session).
+- **Notify "target not found" error now matches candidates scope-aware**
+  (session_key prefix + channel kind), yielding actionable suggestions.
+
+### Operational Tuning
+
+- **Default cadence tick raised 5 min → 37 min**
+  (`ALADUO_CADENCE_INTERVAL_MS`: 300_000 → 2_220_000). With the
+  memory-weaver `cooldown_ticks: 5` unchanged, the effective minimum
+  memory-write cadence moves from ~25 min to ~3 h — dramatically
+  reduces prefix-cache invalidation from `memory/CLAUDE.md` rewrites.
+  Set `ALADUO_CADENCE_INTERVAL_MS` in `~/.config/duoduo/.env` to
+  restore the old cadence if your workload depends on it.
+- **Sentinel subconscious partition retired**. 77-day production data
+  showed 475 runs, $302 in model cost, 438K chars of output, and zero
+  `.pending` files surfaced to the inbox. The checks it performed
+  (session registry anomalies, job-state staleness, cadence queue
+  backlog) are all filesystem-first state — they don't need an LLM to
+  interpret. If an anomaly-surfacing need returns it will land as a
+  TypeScript cron job, not a partition.
+
+### Internal / Dependencies
+
+- `@anthropic-ai/claude-agent-sdk` 0.2.114 → 0.2.119.
+- Codex runtime label stripped of model version (decouples the label
+  from whichever model codex happens to ship this week).
+- `SessionIndex` is now the in-memory derived view of
+  `var/sessions/<hash>/state.json` (completes Phase 3 of
+  session-state-refactor; `var/registry/sessions/` is no longer read
+  on the hot path and is archived to `var/registry.legacy.<ts>/` on
+  first post-upgrade start).
+- `session.archive` RPC + `duoduo session archive <session_key>` CLI
+  retired the old ad-hoc deletion paths. Archive moves the session
+  dir to `var/sessions-archive/`; recovery is `mv` back.
+
+### Upgrade Notes
+
+No migration required beyond restarting the daemon after install. The
+first post-upgrade boot will run the legacy registry sweep once (logs
+`[init] archived legacy var/registry/sessions/`), then the new index is
+authoritative. Existing session artifacts on disk are untouched; only
+the registry index is retired.
+
 ## [v0.5.0-rc.1] - 2026-04-19
 
 First release candidate of the v0.5 line. Published to the `next` npm
