@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.0-rc.2.1] - 2026-04-24
+
+Patch release on top of rc.2. Fixes two channel-feishu bugs that could
+leave a Feishu chat routing to the wrong session after a restart or a
+transient disk failure. Core / protocol / channel-acp have no code
+changes — the version number moved forward so CLI / Docker / npm are
+consistent with the feishu fix.
+
+Safe drop-in upgrade from rc.2.
+
+### Fixes
+
+- **channel-feishu: self-repair watched-sessions against the daemon
+  descriptor on startup** (`75d6d16a`). A Feishu chat whose
+  `watched-sessions.json` recorded a degraded session_key (one that
+  had fallen back to `defaultWorkDir` instead of the /setup-bonded
+  workspace) used to keep re-subscribing under that wrong key on every
+  restart. The daemon then saw two parallel sessions for the same
+  chat — one correct, one wrong — and future messages could land on
+  either. The channel now calls `channel.describe` on startup for
+  every watched key, rebuilds the canonical key from
+  `descriptor.cwd`, rotates the binding, and rewrites the stores. On
+  first inbound for a not-yet-hydrated chat the same describe happens
+  before the lazy session_key init. Transient RPC hiccups stay
+  retryable.
+- **channel-feishu: cs-binding-store persist chain survives disk
+  failures** (`6283c8e7`). A single `fs.writeFile` rejection inside
+  `enqueuePersist()` left `persistChain` permanently rejected, so
+  every subsequent `rememberBinding()` silently no-opped against
+  disk while memory kept mutating. Only a process restart recovered.
+  The stored chain now swaps in a `.catch()`-ed copy after each
+  persist so the next write starts from a resolved baseline; the
+  caller-facing promise still propagates the error so awaiters see
+  the failure.
+
+### Internal
+
+- `@openduo/duoduo`, `@openduo/protocol`, `@openduo/channel-acp`:
+  version-only bump (no code changes) so `duoduo --version`, Docker
+  tag, and the npm `@next` pointer all read `0.5.0-rc.2.1` in lockstep
+  with the feishu fix.
+
 ## [v0.5.0-rc.2] - 2026-04-24
 
 Second release candidate of the v0.5 line. Concentrates on session-lifecycle
