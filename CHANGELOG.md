@@ -2,6 +2,81 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.0] - 2026-04-30
+
+First stable release of the v0.5 line. Promotes the rc.2.x series with
+four small but operator-visible fixes on top of rc.2.1. No schema
+breakage, no config migrations required — drop-in upgrade from rc.2.1.
+
+The headline behavior changes are around two surfaces operators
+interact with directly: the `duoduo channel install` contract, and
+the dashboard `% cache` tile.
+
+### Behavior changes
+
+- **`duoduo channel install <tarball>` is now pure write-to-disk and
+  no longer touches the running plugin** (`c3ce2a6c`). Install stages
+  the new package alongside the running one and atomically renames it
+  into place; POSIX file semantics keep the running process serving on
+  its previous code until it exits on its own. The new code only
+  takes effect after an explicit
+  `duoduo channel <kind> stop && duoduo channel <kind> start`.
+  Pre-v0.5 behavior killed the plugin process before replacing files
+  and left it stopped — automation that relied on that side effect
+  needs to issue an explicit stop+start now. The skill documentation
+  has been updated to describe the new contract and the upgrade
+  sequence.
+
+- **Dashboard `% cache` is now a per-protocol blended rate that
+  excludes drains it can't reliably classify** (`c42ab859`). The
+  previous formula
+  `cache_read / (cache_eligible_input_tokens + cache_read)` was wrong
+  for both wire protocols we drive — Anthropic disjoint vs.
+  OpenAI/Codex subset semantics — and produced a misleading number
+  (50% on hosts that should have been 70%+). Each drain is now tagged
+  with its protocol at the source, and the dashboard computes the
+  hit rate per protocol and blends the two by token weight.
+  Anthropic-compat backends that omit `cache_creation_input_tokens`
+  (e.g. GLM via z.ai) cannot be classified by data shape alone and
+  are deliberately excluded from the rate. Existing pre-fix drain
+  records lack the protocol tag and are also excluded — so on first
+  upgrade the tile shows `--` until tagged drains accumulate
+  (typically minutes on an active host). This is the cutoff working
+  as designed, not a bug.
+
+### Fixes
+
+- **stdio CLI: input bar no longer drifts to the middle of the
+  screen on long turns** (`1c4f1449`). Multi-turn sessions where the
+  agent streamed long markdown plus several tool calls would push
+  Ink past its full-clear threshold, leaving the input bar stranded
+  with ~50 blank rows below. The fix bounds the live region's
+  source height: the streaming draft is rendered as a tail-window of
+  the most-recent `terminal_rows - 6` lines (the full text still
+  commits to scrollback at turn end), the live tool-call display
+  collapses to the last 2 with a "+N earlier" indicator, and the
+  outer Box has an explicit width so Yoga wraps long lines into
+  the right number of `\n`. The Ctrl+B post-turn detail view stays
+  full-list.
+
+### Internal
+
+- **Time annotations injected into `<time-context>`, `<job-tick>`,
+  and `<skip-rewind>` prompt blocks now include a daemon wall-clock
+  alongside the UTC timestamp on host-mode deployments**
+  (`e9de06f2`). On host mode the daemon TZ is the operator TZ, so
+  the agent gets a non-UTC reading of the same instant for
+  scheduling and "what time is it" questions. In container mode the
+  annotation is suppressed because the daemon TZ does not in
+  general match the channel user's TZ. No operator-visible config
+  surface — the host/container split is automatic.
+
+- `@openduo/duoduo`, `@openduo/protocol`, `@openduo/channel-feishu`,
+  `@openduo/channel-acp`: version bump to `0.5.0`. Distribution
+  verification (`tests/distribution/linux/run-verification.sh`) green
+  on all three fixtures (`claude-auth`, `api-key-only`,
+  `omit-optional`).
+
 ## [v0.5.0-rc.2.1] - 2026-04-24
 
 Patch release on top of rc.2. Fixes two channel-feishu bugs that could

@@ -1,6 +1,6 @@
 ---
 name: duoduo-runtime-admin
-description: "Manage host-mode duoduo daemon-level settings and diagnostics. Use when the request involves: inspecting daemon status/config/logs, Codex runtime setup (auto-detected from v0.5: install codex + run `codex login`) or sandbox (ALADUO_CODEX_SANDBOX), log verbosity (ALADUO_LOG_LEVEL), telemetry persistence, cadence interval, other ALADUO_* env keys in ~/.config/duoduo/.env, running-daemon diagnostics, or refreshing subconscious partition prompts from a published duoduo tag. Also trigger for Chinese: 启用 codex runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, 看看 duoduo daemon 配置, 查 daemon 日志, 升级潜意识, 刷新潜意识, 更新分区提示词, 同步 subconscious, refresh subconscious, update partition prompts. This skill does NOT handle channel-kind settings (Feishu/WeChat/ACP) — those live in duoduo-channel-admin."
+description: "Manage host-mode duoduo daemon-level settings and diagnostics. Use when the request involves: inspecting daemon status/config/logs, Codex runtime setup (auto-detected from v0.5: install codex + run `codex login`) or sandbox (ALADUO_CODEX_SANDBOX), log verbosity (ALADUO_LOG_LEVEL), telemetry persistence, cadence interval, other ALADUO_* env keys in ~/.config/duoduo/.env, running-daemon diagnostics, refreshing subconscious partition prompts from a published duoduo tag, or archiving / pruning the usage ledger (var/usage growing too large). Also trigger for Chinese: 启用 codex runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, 看看 duoduo daemon 配置, 查 daemon 日志, 升级潜意识, 刷新潜意识, 更新分区提示词, 同步 subconscious, refresh subconscious, update partition prompts, 归档 usage, 清理 usage, 缩 var/usage, 保留最近 N 周 usage. This skill does NOT handle channel-kind settings (Feishu/WeChat/ACP) — those live in duoduo-channel-admin."
 ---
 
 # Duoduo Runtime Admin
@@ -86,6 +86,18 @@ restart is required after refresh.
   suppress every in-process debug log line.
 - Use `duoduo daemon config` to inspect the current effective value before
   claiming what the default is on this machine.
+
+## Usage Ledger Maintenance
+
+`var/usage/<session_key>.jsonl` is append-only with no automatic
+retention — long-lived hosts accumulate hundreds of MB. The host
+operator (or this skill on request) archives stale files into a
+sibling `var/usage-archive/<bucket>/`. The daemon does not need to
+restart; it scans `var/usage/` per `usage.get` call.
+
+Read [references/usage-archive.md](references/usage-archive.md) for
+the verified `find -mtime +N | xargs mv` recipe, recovery, and the
+race-window note.
 
 ## Operating Rules
 

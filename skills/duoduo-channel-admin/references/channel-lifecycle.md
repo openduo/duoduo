@@ -18,6 +18,30 @@ the runtime version actually supports it. If a user asks for a build
 from source, that's only appropriate when the package is unpublished,
 a dev build is required, or they have a local unreleased tarball.
 
+### Install is pure write-to-disk (v0.5+)
+
+`duoduo channel install` writes the new package to disk and atomically
+swaps it in. It does **not** stop, restart, or otherwise touch any
+running plugin process. POSIX file semantics keep the running process
+mapped to the previous code via its open inode until it exits on its
+own terms.
+
+This means:
+
+- After `install`, the channel keeps serving on the OLD code. You will
+  see `duoduo channel <kind> status` show the new package version but
+  the same `pid` as before — that is correct.
+- The new code only takes effect after an explicit `stop && start`.
+- Operators who want to refresh the running version must issue:
+  ```bash
+  duoduo channel <kind> stop
+  duoduo channel <kind> start
+  ```
+- Pre-v0.5 behavior was different: install used to terminate the
+  running plugin and leave it stopped. Any automation written against
+  the old behavior should be updated to issue an explicit stop+start
+  when a version swap is desired.
+
 ## Lifecycle subcommands
 
 All channel plugins expose:
@@ -62,10 +86,24 @@ that file:
 
 ## After install, verify
 
+`install` only writes to disk (see "Install is pure write-to-disk"
+above), so a fresh install of a not-yet-running plugin leaves it
+`stopped`. To bring it up:
+
 ```bash
 duoduo channel list              # confirms the new plugin is registered
+duoduo channel <kind> start      # actually launches the process
 duoduo channel <kind> status     # confirms it started cleanly
 duoduo channel <kind> logs       # first few lines should show handshake
+```
+
+If you are upgrading an already-running plugin to a new version, the
+sequence is:
+
+```bash
+duoduo channel install <new.tgz>     # disk only, old process keeps serving
+duoduo channel <kind> stop           # release the old version
+duoduo channel <kind> start          # boot the new version
 ```
 
 If `logs` is quiet or `status` reports a crash loop, the handshake

@@ -154,6 +154,40 @@ When a user reports a "Setup failed: channel already configured"
 toast, the fix is simple: have them send `/setup` to get the current
 card, then click Start again.
 
+## Group messages without `@bot` require an extra Feishu scope
+
+Setting `FEISHU_REQUIRE_MENTION=false` (env) or unchecking the "Require
+@" toggle in `/setup` (descriptor) tells the bot it should respond to
+group messages even when not @-mentioned. **By itself this is a
+no-op** unless the Feishu app has also been granted the sensitive
+scope `im:message.group_msg` ("Read all messages in a group") and that
+permission has been released into the published version of the app.
+
+Symptoms when the scope is missing:
+
+- Toggle is unchecked / env set to false
+- Bot still only responds when explicitly @-mentioned
+- Daemon log shows the message arriving but routed without a
+  matching event
+- No error — the Feishu webhook simply never delivers the
+  un-mentioned group messages to the bot
+
+Operator checklist when configuring `require_mention=false`:
+
+1. Open the app on Feishu open platform → Permissions →
+   `im:message.group_msg` ("Read all messages in a group" /
+   "获取群组中所有消息")
+2. Apply for the scope (sensitive, requires admin approval)
+3. After approval, **publish a new version of the app** so the scope
+   is actually live (granting alone is not enough on Feishu)
+4. Restart the channel: `duoduo channel feishu stop && start`
+5. Re-test with a non-@ message in the group
+
+The setup card and rebind card render this hint inline below the
+require_mention checker (v0.5+), and `duoduo channel feishu doctor`
+includes it in the manual checklist. If a user toggles the box but
+group messages still need @, this scope gap is the most likely cause.
+
 ## Accepted v0.5 limits
 
 Two corner-case behaviors are known, evaluated, and deliberately not
