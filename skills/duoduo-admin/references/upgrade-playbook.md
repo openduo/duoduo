@@ -168,7 +168,11 @@ upgraders:
   refuse to start, with an actionable error naming the missing
   `@anthropic-ai/claude-agent-sdk-<platform>-<arch>` package.
   Reinstall without the flag, or set `CLAUDE_CODE_EXECUTABLE`
-  to a compatible binary you already have.
+  to a compatible binary you already have. From the fixed v0.5
+  patch line onward, successful host onboarding with
+  `CLAUDE_CODE_EXECUTABLE` set persists that value in
+  `~/.config/duoduo/.env`, and macOS launchd daemon starts forward
+  the same value into the daemon environment.
 - Users who previously installed `@anthropic-ai/claude-code` as
   a separate global package can uninstall it — duoduo now carries
   its own copy via the SDK. Keeping the standalone install is

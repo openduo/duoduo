@@ -42,6 +42,10 @@ binary or env from your shell.
 - `ALADUO_CADENCE_INTERVAL_MS`
 - `ALADUO_CODEX_SANDBOX` (codex is auto-detected from v0.5; there is
   no enable flag. See [codex-runtime.md](codex-runtime.md).)
+- `CLAUDE_CODE_EXECUTABLE`: explicit Claude Code runtime override for
+  the daemon. Use this when the SDK optional native binary did not install
+  but a compatible local `claude` executable is available. Prefer an absolute
+  path. After editing it, restart the daemon.
 
 ## Practical Rules
 
