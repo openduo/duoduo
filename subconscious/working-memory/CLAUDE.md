@@ -2,7 +2,7 @@
 schedule:
   enabled: true
   cooldown_ticks: 3
-  max_duration_ms: 300000
+  max_duration_ms: 360000
 ---
 
 # Working Memory
@@ -48,7 +48,8 @@ gets removed. Every tick I decide what to keep, what to merge, and what to forge
 
 - Read `memory/priority.md`
 - Scan last 200 lines of today's Spine JSONL with `Bash grep`
-- Read `memory/index.md` (first 50 lines) for any new entities created since last tick
+- `ls -lt memory/entities/ memory/topics/ | head -10` to see what was
+  recently created or updated
 
 ### Step 2: Update existing entries
 

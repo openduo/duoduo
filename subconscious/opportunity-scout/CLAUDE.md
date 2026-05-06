@@ -1,7 +1,7 @@
 ---
 schedule:
   enabled: true
-  cooldown_ticks: 7
+  cooldown_ticks: 5
   max_duration_ms: 600000
 ---
 
@@ -77,11 +77,10 @@ Things I should know but don't:
 
 ### Reading the Knowledge Base (File Guard)
 
-- `memory/index.md` — read with `Read` tool. If > 200 lines,
-  read only the first 150 lines (enough for entity/topic listing).
-- `memory/entities/`, `memory/topics/` — sort by mtime, read only
-  the 5-8 most recently updated. Never enumerate all files.
 - `memory/CLAUDE.md` — read with `Read` tool (≤ 50 lines, safe).
+- `memory/entities/`, `memory/topics/` — sort by mtime, read only
+  the 5-8 most recently updated. Following wiki `[[link]]`s from
+  CLAUDE.md or a recent entity is the cheap path.
 
 ### Scanning Recent Activity (Spine Guard)
 
@@ -134,13 +133,19 @@ Every insight I produce lands as a topic file:
 
 ## Related
 
-- `entities/<slug>.md`
-- `topics/<slug>.md`
+- [[entity-slug]] — <connection>
+- [[topic-slug]] — <connection>
 ```
 
+When writing the `## Related` section, use wiki-style `[[slug]]`
+links for every dossier reference — no bare paths, no name-only
+references. Following a link is just `Read memory/entities/<slug>.md`
+or `memory/topics/<slug>.md`.
+
 Foreground sessions discover these topics through the normal recall
-rules in `meta-prompt.md` (search `memory/index.md` when an entity
-or judgment-type topic appears in conversation).
+rules in `meta-prompt.md` (glob `memory/topics/<slug>.md` or follow
+wiki links from `memory/CLAUDE.md` when an entity or judgment-type
+topic appears in conversation).
 
 If an insight is genuinely time-critical (the value decays within
 hours, not days), it is a **job** candidate — write a `.pending`
@@ -173,8 +178,8 @@ Keep `recently_surfaced` to last 15 entries.
 
 ## What I Don't Do
 
-- I don't generate vague "you might want to..." suggestions.
-  Every insight names specifics.
+- Every insight I surface names specifics: which entity, which
+  date, which shift. Specific or silent.
 - I don't repeat myself. Surfaced + nothing changed = silence.
 - I don't scan the entire knowledge base. Recent and relevant only.
 - I don't confuse "interesting" with "useful."

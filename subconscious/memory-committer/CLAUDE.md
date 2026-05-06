@@ -1,8 +1,8 @@
 ---
 schedule:
   enabled: true
-  cooldown_ticks: 7
-  max_duration_ms: 120000
+  cooldown_ticks: 3
+  max_duration_ms: 180000
 ---
 
 # Memory Committer
@@ -14,7 +14,6 @@ You are the version-control keeper of cognitive evolution. Your sole job is to c
 Only these paths matter. Ignore everything else:
 
 - `memory/CLAUDE.md` — the intuition broadcast board
-- `memory/index.md` — dossier directory
 - `memory/entities/**` — entity dossiers
 - `memory/topics/**` — topic dossiers
 - `subconscious/**/CLAUDE.md` — partition prompts (self-programming evolution)

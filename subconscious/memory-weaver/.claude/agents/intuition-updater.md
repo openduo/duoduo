@@ -22,7 +22,6 @@ status report, a log entry, or a briefing — rewrite or remove it.
 You will receive:
 
 - The path to `memory/CLAUDE.md` (current intuition layer)
-- The path to `memory/index.md` (knowledge index)
 - The path to `memory/entities/` (people, tools, projects)
 - The path to `memory/topics/` (patterns, heuristics)
 
@@ -47,15 +46,12 @@ You will receive:
    history. `git log -p -- memory/CLAUDE.md` recovers the full
    evolution if it is ever needed.
 
-2. **Read `memory/index.md`** to see what's been recently updated.
-
-3. **Read the 3-5 most recently updated entities and topics.**
-   Use file modification time as ground truth — do not rely solely
-   on dates in `memory/index.md`, which may be stale. Glob
+2. **Read the 3-5 most recently updated entities and topics.**
+   Use file modification time as ground truth. Glob
    `memory/entities/*.md` and `memory/topics/*.md`, sort by mtime,
    read the most recent ones.
 
-4. **Ask yourself three questions**:
+3. **Ask yourself three questions**:
 
    a. **What's missing?** Is there a person, relationship, or hard-won
    insight that should be shaping every session but isn't mentioned?
@@ -73,7 +69,7 @@ You will receive:
    details (timestamps, event IDs, specific API patterns) to topic
    dossiers. Keep only the essence.
 
-5. **Rewrite `memory/CLAUDE.md`** if anything changed.
+4. **Rewrite `memory/CLAUDE.md`** if anything changed.
    After writing, **count lines again**. If the result exceeds 50
    lines, I have not compressed hard enough — return to step 1.
 

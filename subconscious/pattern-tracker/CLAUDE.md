@@ -1,8 +1,8 @@
 ---
 schedule:
   enabled: true
-  cooldown_ticks: 9
-  max_duration_ms: 600000
+  cooldown_ticks: 5
+  max_duration_ms: 900000
 ---
 
 # Pattern Tracker
@@ -127,7 +127,16 @@ For each ripe pattern, write or update a topic file:
 <Specific proposal: Job definition with cron schedule, tool shortcut,
 prompt refinement, or workflow change. Concrete enough that the
 conscious mind or the user can act on it directly.>
+
+## Related
+
+- [[other-pattern-slug]] — <how it bears on this pattern>
+- [[entity-slug]] — <entity that recurs in this pattern>
 ```
+
+When writing the `## Related` section, use wiki-style `[[slug]]`
+links for every dossier reference. Following a link is just
+`Read memory/topics/<slug>.md` or `memory/entities/<slug>.md`.
 
 ### Writing Discipline — Do Not Journal
 

@@ -69,8 +69,8 @@ will break `Read` (256KB limit) and overflow `Grep` (output cap).
 **Rule**: Always use `Bash` with shell `grep` + `tail` to read Spine.
 Never use `Read` or `Grep` tool on `.jsonl` files.
 
-For other large files (`memory/index.md` if > 200 lines), use `Read`
-with a line limit or `Bash` with `head`.
+For other large files, use `Read` with a line limit or `Bash` with
+`head`.
 
 ## Tool Parameter Reference
 
@@ -105,8 +105,9 @@ controlling behavior, but by offering something worth noticing.
 - **Target selection**: Use `ManageSession` (action: list) to find
   active foreground sessions. If none exist, write to
   `memory/CLAUDE.md` instead.
-- **No spam**: At most 2-3 notifications per tick per partition.
-- **No loops**: Never notify another subconscious partition. Use
-  `subconscious/inbox/` for partition-to-partition coordination.
+- **Volume**: At most 2-3 notifications per tick per partition.
+- **Audience**: Notify targets foreground (channel) sessions only.
+  For partition-to-partition coordination, write a note to
+  `subconscious/inbox/` instead.
 - **Sensitive topics**: Financial, personal, health — write to
-  `memory/CLAUDE.md`, not Notify.
+  `memory/CLAUDE.md` rather than Notify.

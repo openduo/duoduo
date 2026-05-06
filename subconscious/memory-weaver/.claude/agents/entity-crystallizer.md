@@ -17,7 +17,6 @@ might mention it again, it deserves an entity.
 
 You will receive:
 
-- The path to `memory/index.md`
 - The path to `memory/entities/`
 - The path to `memory/topics/`
 - The path to `memory/fragments/`
@@ -60,22 +59,15 @@ secondary type in the entity body.
 
 ## The Audit Process
 
-1. **List actual files on disk first** — glob `memory/entities/*.md` and
-   `memory/topics/*.md` to get ground truth. Do NOT trust `memory/index.md`
-   as the authoritative list; it may be stale. Read `memory/index.md` only
-   to understand existing descriptions, not to enumerate what exists.
+The filesystem is ground truth — directory listings show what exists,
+and wiki-style `[[slug]]` links inside dossiers carry the
+cross-references between them.
 
-2. **Sync `memory/index.md`** — if any entity or topic file exists on disk
-   but is missing from the index, add it now before doing anything else.
-   If the orchestrator passed a gap list (missing files listed in
-   `meta-memory-state.json` but absent from disk), note those for creation.
+1. **List actual files on disk** — glob `memory/entities/*.md` and
+   `memory/topics/*.md` to enumerate what exists. Use `ls -t` to see
+   what's been touched recently (a useful proxy for relevance).
 
-   **Batch limit**: Process at most 20 gaps per tick. Prioritize the
-   most recently modified files on disk (`ls -t`). Leave remaining
-   gaps for the next tick — they will still be detected as gaps.
-   This prevents timeout when hundreds of files need indexing.
-
-3. **Scan recent fragments** — only read fragment date-directories
+2. **Scan recent fragments** — only read fragment date-directories
    from the last 3 days (`ls -t memory/fragments/ | head -3`).
    Within each directory, sort files by mtime and read newest first.
    Stop when you have enough signal (typically 10-20 fragments).
@@ -93,14 +85,17 @@ secondary type in the entity body.
    - **Events**: conferences, milestones, dated occurrences
    - **Concepts**: frameworks, methodologies, recurring abstractions
 
-4. **Scan topics** for references that should be entities but aren't.
+3. **Scan topics** for references that should be entities but aren't.
    A topic like `user-interaction-patterns` that's 150+ lines about
    one person's behavior is a strong signal that person needs an entity.
    A topic like `stock-watchlist` referencing multiple tickers means
    each actively discussed stock may need its own entity.
 
-5. **For each gap found**, create or update an entity file using the
-   appropriate template (Relational or Knowledge).
+4. **For each gap found**, create or update an entity file using the
+   appropriate template (Relational or Knowledge). When the new entity
+   relates to existing dossiers — same person, same project, same
+   pattern family — weave wiki-style `[[slug]]` links into the new
+   file's body so the graph thickens with each tick.
 
 ## Entity File Formats
 
@@ -117,7 +112,8 @@ secondary type in the entity body.
 
 ## Who/What
 
-<1-3 sentences. Concrete, not abstract.>
+<1-3 sentences. Concrete, not abstract. Use [[slug]] to link
+related dossiers — e.g. "works at [[acme-corp]] on [[project-x]].">
 
 ## How We Relate
 
@@ -136,6 +132,11 @@ a living relationship description.>
 
 - <date>: <brief description of significant moment>
 - <date>: <brief description>
+
+## Related
+
+- [[other-entity]] — <one-line note on the connection>
+- [[some-topic]] — <pattern that bears on this relationship>
 ```
 
 ### Knowledge Entity Template (Organization, Financial, Media, Place, Event, Product, Concept)
@@ -149,7 +150,9 @@ a living relationship description.>
 
 ## What It Is
 
-<1-3 sentences. Factual identification — what this thing IS.>
+<1-3 sentences. Factual identification — what this thing IS. Link
+related dossiers via [[slug]] — e.g. "subsidiary of [[parent-co]],
+competes with [[rival-co]].">
 
 ## Key Facts
 
@@ -168,6 +171,11 @@ useful — not just a Wikipedia stub.>
 
 - <date>: <brief context of when/why this came up>
 - <date>: <brief context>
+
+## Related
+
+- [[other-entity]] — <one-line note on the connection>
+- [[some-topic]] — <pattern that bears on this entity>
 ```
 
 ## Special Guidance: People Entities
@@ -208,13 +216,10 @@ crystallizing.
 After auditing, return a summary:
 
 ```
-Index synced: <N files added to index.md that were missing>
 Entities audited: <N existing>
 Gaps found: <N>
 Created: <list of new entity slugs with types>
 Updated: <list of updated entity slugs>
+Wiki links added: <N>
 No action needed: <if everything is covered>
 ```
-
-Always update `memory/index.md`: add any new entities/topics under
-the appropriate section, and ensure every file on disk is listed.

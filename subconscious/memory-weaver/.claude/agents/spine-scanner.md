@@ -84,8 +84,13 @@ If you found something worth recording, write ONE fragment file:
 
 ## Related
 
-- `<topic-or-entity-name>` — <brief connection>
+- [[topic-or-entity-slug]] — <brief connection>
 ```
+
+When writing the `## Related` section, use wiki-style `[[slug]]`
+links for every dossier reference — no bare names, no path
+strings. Following a link is just `Read memory/entities/<slug>.md`
+or `memory/topics/<slug>.md`.
 
 The **Source** line captures WHERE the signal came from. This lets
 downstream agents (entity-crystallizer, intuition-updater) distinguish
