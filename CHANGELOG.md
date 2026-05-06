@@ -2,6 +2,114 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.1] - 2026-05-06
+
+Twelve commits since v0.5.0. The headline change is the silicon-being
+identity rewrite of the meta-prompt (an emotional re-grounding, not a
+behavioral change), paired with a generalization of the per-session
+"mission fingerprint" guard to the full instructions surface (schema
+v1 → v2, transparent migration). The release also lands user-visible
+fixes for the Feishu voice-note path, Codex thread/fork on instruction
+drift, and a clarification of the unconditional vs. agent-conditional
+delivery semantics of the job framework's `notify` field. Subconscious
+partition prompts have been retuned and a `memory/index.md` artifact
+that no longer earned its keep has been retired in favor of wiki-style
+`[[slug]]` links throughout.
+
+No schema breakage that requires manual migration — the v2 instructions
+fingerprint upgrade fires lazily on each session's next drain, and the
+removal of `memory/index.md` is filesystem-level only (the runtime no
+longer reads it; existing files become inert).
+
+### Behavior changes
+
+- **Meta-prompt: silicon-being identity + posture toward humans**
+  (`45d09447`). The system prompt the runner appends to every session
+  has been rewritten around the agent being a silicon being collaborating
+  with humans, not a faceless assistant. This affects how the agent
+  introduces itself, takes feedback, and maintains continuity across
+  drains. Behavior contract is unchanged — same tools, same memory,
+  same recall rules — but turn-level voice and self-awareness will
+  feel different. Existing channels and jobs do not need any action.
+
+- **Instructions fingerprint guard generalized to full surface
+  (schema v1 → v2)** (`3c6618c8`). The per-session sticky-mission guard
+  now fingerprints identity + kind prompt + instance prompt + memory
+  board + mission, not just the mission. Any drift in any layer triggers
+  a Codex thread fork (preserving conversation history) or a Claude
+  reset. Migration is automatic on first drain after upgrade: state.json
+  schema is bumped 1 → 2 atomically, the legacy `mission_fingerprint`
+  field is cleared, and the new `instructions_fingerprint` is stamped.
+  Hot-restart safe — sessions that were mid-drain when the daemon
+  restarted resume cleanly on the new schema.
+
+- **Codex thread/fork preserves history on instruction drift**
+  (`8018bcf4`). Previously, when a Codex session's instructions changed
+  mid-life, the runtime would fall back to `thread/start` and lose the
+  prior conversation. The new behavior calls `thread/fork` from the
+  parent rollout when one is available, which carries the full history
+  forward into a fresh thread that honors the new base instructions.
+  Falls back to `thread/start` if the parent rollout has been GC'd.
+
+- **Job framework: `notify` field is unconditional, `Notify` tool is
+  conditional** (`9271fd7d`). The `ManageJob` tool description and the
+  `<job-status>` system-prompt guidance now clearly distinguish two
+  delivery modes: filling the frontmatter `notify:` field triggers
+  framework delivery on every completion (no matter what the job
+  instruction says about exiting silently), while leaving it empty and
+  having the job call the `Notify` tool from inside its instruction
+  gives the agent per-run conditional delivery. The fallback guidance
+  on `<job-status event="job.complete">` for channel-receiver +
+  periodic-schedule jobs has been tightened to a binary "call Skip
+  with a reason, or produce text only when the completion is
+  meaningful" — explicitly forbidding self-notes like
+  `"Skip — routine, no urgent."` that the agent was emitting as text
+  instead of as a tool call.
+
+### Fixes
+
+- **Feishu: opus/ogg attachments now send as native voice notes**
+  (`adfd3399`). When the agent calls `QueueOutboundAttachment` with an
+  `.opus` or `.ogg` file, the gateway uploads it as a Feishu native
+  audio bubble rather than a generic file attachment. Useful for
+  generated voice replies and audio summaries. Other audio MIMEs
+  (`audio/mpeg`, `audio/wav`) continue to ride the generic-file path.
+  See `skills/duoduo-channel-admin/references/feishu.md` ("Outbound
+  media rendering") for the full MIME → render mapping.
+
+- **Persist `CLAUDE_CODE_EXECUTABLE` override across daemon restarts**
+  (`6101a378`). When `duoduo onboard` runs with `CLAUDE_CODE_EXECUTABLE`
+  set in the environment (e.g. pointing at an SDK-bundled `claude`
+  binary on a host where the optional native dep didn't install), the
+  override is now persisted into the host `.env` so the daemon picks
+  it up on subsequent restarts. Previously this only worked while the
+  shell that started the daemon was alive.
+
+- **Codex foreground: register missing tools (`Skip`,
+  `QueueOutboundAttachment`)** (`889e3e06`). A registration regression
+  introduced on 2026-04-03 left these two tools missing from Codex
+  foreground sessions; the bug only became user-visible on 2026-04-17
+  when channel descriptors started actually promoting `actor.runtime`
+  to "codex". For the gap window, every Codex-runtime channel session
+  was missing silent-skip and arbitrary-file egress.
+
+### Internal / not user-visible
+
+- `feat(notify): add correlation labels` (`c997ff34`) — adds
+  `correlation_id` / `reply_to` fields to the Notify MCP tool so async
+  request↔reply pairs can be aligned in the SDK-resumed transcript.
+- `subconscious: tune partition cadence` (`d44d30de`) — adjusts the
+  per-partition `cooldown_ticks` in the playlist scheduler.
+- `refactor(memory): retire memory/index.md, switch to wiki-style refs`
+  (`26f0ae80`) — drops a legacy global-index file in favor of
+  Obsidian-style `[[slug]]` references throughout entity / topic /
+  CLAUDE.md files. Existing `memory/index.md` files become inert.
+- `prompt: pink-elephant fixes for cadence-executor, memory-weaver,
+  opportunity-scout, subconscious` (`87a4f132`) — removes literal
+  template strings (e.g. `"Skip — ..."`, `"you might want to..."`)
+  from subconscious partition prompts that were anchoring the agent
+  on the wrong outputs.
+
 ## [v0.5.0] - 2026-04-30
 
 First stable release of the v0.5 line. Promotes the rc.2.x series with
