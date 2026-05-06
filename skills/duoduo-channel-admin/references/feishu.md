@@ -14,6 +14,7 @@ card behavior, owner DM, `/setup` routing, 200340 errors, reset, or any
 - `FEISHU_BOT_OWNER` + security hygiene
 - 200340 error triage
 - Reset a bound channel (when descriptor or session is stale)
+- Outbound media rendering (opus voice notes, image, files)
 - Stale first-time card (v0.5 guard)
 - Accepted v0.5 limits (do NOT open as bugs)
 
@@ -140,6 +141,22 @@ duoduo channel feishu stop && duoduo channel feishu start
 The restart is non-negotiable: the plugin caches subscription state
 in memory (`watched-sessions.json`), so editing the file without a
 restart does not detach the old subscription.
+
+## Outbound media rendering
+
+The Feishu gateway renders daemon-produced attachments according to MIME:
+
+- `audio/ogg` (`.opus`, `.ogg`) — sent as a **native Feishu voice note**,
+  not a generic file attachment. This is the path agents should use for
+  voice-message output. `.opus` is preferred because Feishu's audio player
+  supports it natively at low bitrate.
+- `audio/mpeg` (`.mp3`), `audio/wav` (`.wav`) — sent as generic audio file.
+- `image/*` — sent as inline image.
+- All other MIME types — sent as a file attachment.
+
+When the agent calls `QueueOutboundAttachment` (MCP tool) with an `.opus`
+file, the gateway uploads it as a voice message bubble that the user can
+play with one tap. Useful for generated voice replies and audio summaries.
 
 ## Stale first-time card defense (v0.5)
 
