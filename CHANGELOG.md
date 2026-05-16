@@ -2,6 +2,71 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.2] - 2026-05-16
+
+This release teaches the foreground agent how to use its own memory
+graph, lands cross-runtime `/compact` and `/undo`, and retires two
+subconscious partitions that were producing files no one was reading.
+
+### Highlights
+
+- **GraphSkill consumer contract**: the meta-prompt now tells the
+  agent how to navigate dossiers with `[[wikilinks]]`, how to read
+  modal tags (`[observation]` / `[inference]` / `[instruction]` /
+  `[conditional]` / `[hypothesis (unratified)]` / `[superseded]`),
+  when to open a dossier before acting, and how the fragment loop
+  keeps the graph from amplifying its own past.
+- **`/compact` and `/undo` work everywhere**. Type them in any
+  channel (Feishu DM, stdio, ACP editor). Both runtimes shrink the
+  conversation in place or roll back the last `N` exchanges, with a
+  text reply when the command finishes.
+- **`@<file>` imports in `memory/CLAUDE.md` actually inline now**.
+  The runtime parses Claude Code's `@<file>` directives itself and
+  injects the rendered import graph into both Claude and Codex
+  sessions through one path.
+- **ACP editor sessions no longer race the first prompt**. The
+  bridge keeps editor-side and daemon-side sessions in lockstep on
+  open and close.
+- **Two partitions retired**: `opportunity-scout` and
+  `working-memory`. Their prompts stay as design archaeology and
+  the meta-session scheduler auto-skips them.
+
+### Package versions
+
+- `@openduo/duoduo` → 0.5.2
+- `@openduo/channel-acp` → 0.5.2 (session lifecycle fix)
+- `@openduo/protocol` stays at 0.5.0 (no source changes)
+- `@openduo/channel-feishu` stays at 0.5.1 (only transitive deps)
+
+### Migration
+
+For most operators a `duoduo daemon restart` after the upgrade is
+enough. The new GraphSkill consumer contract and `@<file>`
+resolution live in the npm package's `bootstrap/` and take effect
+immediately.
+
+If you want the partition retirement and the prompt tightening to
+land in your kernel under `~/aladuo/subconscious/`, run the
+`subconscious-refresh` procedure documented in the
+`duoduo-runtime-admin` skill. Existing `memory/priority.md` files
+stay on disk and are no longer rewritten; rename to
+`priority.md.retired-YYYY-MM-DD` if you want it out of the way.
+
+One subtle behavior change worth a glance: `@<file>` directives
+inside `memory/CLAUDE.md` now actually inline their target. Before
+v0.5.2 the directive was silently inert under
+`additionalDirectories`, so anything referenced there did not
+reach the system prompt. If you had directives that you assumed
+were no-ops, review them.
+
+### Skill refresh
+
+The public skills under `duoduo-runtime-admin` and
+`duoduo-channel-admin` have been refreshed to cover the new
+`/compact` and `/undo` commands, the ACP lifecycle alignment, and
+the post-v0.5.2 partition status. Load the matching skill on
+demand — there is nothing to install.
+
 ## [v0.5.1] - 2026-05-06
 
 Twelve commits since v0.5.0. The headline change is the silicon-being
