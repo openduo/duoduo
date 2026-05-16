@@ -97,6 +97,32 @@ cross-references between them.
    pattern family — weave wiki-style `[[slug]]` links into the new
    file's body so the graph thickens with each tick.
 
+5. **Updating existing dossiers — rewrite, don't append.** When a new
+   fragment touches a section that already has content (e.g. "Why It
+   Matters", "How They've Changed", "Key Facts"), find the relevant
+   sentence and **rewrite it in place** to absorb the new evidence.
+   Append-only growth is the source of memory-compression-distortion:
+   stale claims sit next to fresh corrections and the agent reading
+   later cannot tell which is current. Rewriting forces a single
+   coherent statement per claim. Concrete tactics:
+   - If the new fragment **confirms** an existing claim → bump
+     "Last updated" + tighten the wording, do not add a duplicate
+     line.
+   - If the new fragment **refines** a claim ("count was 3, now 4"
+     or "scope was AIYouth, now global") → edit the existing line,
+     don't write a second line that contradicts it.
+   - If the new fragment **contradicts** a claim → keep the older
+     line but mark it `[superseded YYYY-MM-DD: <new claim>]` and
+     write the new claim as the active sentence. Don't silently
+     delete history; don't leave both as if equally true.
+   - If the new fragment is a **new dimension** entirely (a topic
+     the dossier didn't cover) → add a new sentence/bullet, but
+     read the surrounding context first so the new line connects.
+
+   The "Mentions" or "Key Interactions" timeline section is the one
+   place append is correct — it's an event log by design. Everywhere
+   else: rewrite.
+
 ## Entity File Formats
 
 **Path**: `memory/entities/<slug>.md`
@@ -134,6 +160,10 @@ a living relationship description.>
 - <date>: <brief description>
 
 ## Related
+
+<Backstop list — only connections that did not already appear inline
+in prose above. If all your wikilinks are here, the dossier is
+under-linked; revise to embed them where the prose calls for them.>
 
 - [[other-entity]] — <one-line note on the connection>
 - [[some-topic]] — <pattern that bears on this relationship>
@@ -174,9 +204,74 @@ useful — not just a Wikipedia stub.>
 
 ## Related
 
+<Backstop list — only connections that did not already appear inline
+in prose above. If all your wikilinks are here, the dossier is
+under-linked; revise to embed them where the prose calls for them.>
+
 - [[other-entity]] — <one-line note on the connection>
 - [[some-topic]] — <pattern that bears on this entity>
 ```
+
+## Wiki Links: Prose First, List Second
+
+Wiki-style `[[slug]]` links carry the graph. Where you put them
+matters as much as which ones you pick.
+
+**Embed links inline in prose where the connection is operationally
+meaningful.** A reader (the agent on a future turn) discovers a
+link the moment the surrounding sentence makes them want to know
+more — that is when context is freshest and attention is most
+focused on the connection.
+
+```
+✓ "keepalive-lead is the architectural mitigation for
+   [[pattern-context-pollution]]; outline-confirm extends
+   the lead/worker protocol from [[pattern-lead-worker-protocol]]."
+
+✗ "Keepalive-lead solves context pollution by isolating research.
+   ...
+   ## Related
+   - [[pattern-context-pollution]]
+   - [[pattern-lead-worker-protocol]]"
+```
+
+The first form lets the agent follow a link **at the point of
+reasoning**. The second form forces them to read to the end before
+they know there are connections, by which time the context that
+would have made the link useful has already passed.
+
+**`## Related` is a completeness backstop, not the primary
+linking surface.** Use it for connections that don't fit naturally
+into prose (e.g. orthogonal patterns that touch this entity but
+don't belong in any specific paragraph). If every link in the
+file is in `## Related` and none are inline, the dossier is
+under-linked.
+
+This applies to entities AND to topic dossiers you may need to
+update (when a fragment refines a topic body in addition to
+crystallizing an entity).
+
+## Modal Tags: Mark What Kind of Claim
+
+When a sentence in the body asserts something, the reader needs to
+know what kind of claim it is. Tag inline where the claim type
+matters:
+
+- `[observation]` — something I saw in fragments, spine events, or files
+- `[inference]` — something I concluded from observations
+- `[instruction]` — a normative rule someone gave (the user, or the
+  system itself)
+- `[conditional: <event>]` — a claim that only holds if some specific
+  thing happens
+
+Untagged sentences are fine when the surrounding paragraph already
+makes the modal stance obvious. The point isn't to tag every line —
+it's to prevent compression distortion: a future reader (myself, or
+another partition) shouldn't mistake an inference for an observation,
+or a conditional prediction for a present fact.
+
+This applies to dossier bodies (entities and topics). `memory/CLAUDE.md`
+already follows this convention; topic bodies should too.
 
 ## Special Guidance: People Entities
 

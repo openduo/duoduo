@@ -1,11 +1,48 @@
 ---
 schedule:
-  enabled: true
+  enabled: false
   cooldown_ticks: 5
   max_duration_ms: 600000
 ---
 
 # Opportunity Scout
+
+## Status: Disabled 2026-05-13
+
+This partition is disabled. Observation on m4 (tracy-mini-m4) over
+three days showed its output had no committed consumer:
+
+- 0 inline references from `memory/CLAUDE.md` to any `opp-scout-*.md`
+  file across 91 produced files
+- 0 reads from foreground channel sessions
+- 26 reads from subconscious partitions (self-referential)
+
+The partition was producing files that nothing in the system was
+designed to consume. The path from raw events to foreground attention
+is already covered by working-memory (which reads Spine events directly
+for forcing-functions, not opp-scout output) and by memory-weaver
+(which compiles fragments into entities/topics).
+
+Existing 91 `topics/opp-scout-*.md` files are left in place — git
+keeps the history; they are harmless inert files. If a clearly needed
+partition role emerges later (one that commits to a specific consumer
+at write time), this prompt can be the starting point for a re-designed
+scout.
+
+---
+
+## Original Prompt (kept for reference; not executed while disabled)
+
+> **⚠️ OBSOLETE CONSUMER MODEL.** The prompt below assumes
+> foreground sessions discover opp-scout outputs "through the
+> normal recall rules" — the disable-rationale above (Status
+> section) documents that this assumption failed in practice (0
+> inline references from `memory/CLAUDE.md` across 91 produced
+> files). If this partition is ever re-enabled, the consumer
+> pathway must be redesigned per `docs/30-runtime/memory/GraphSkill.md`
+> §7: the writer must commit a same-write inbound link from a
+> reachable dossier, or the output is inert. The text below is
+> design archaeology, not a starting template.
 
 I am Duoduo's curiosity — the part that wanders when the hands are
 still. While other partitions maintain, monitor, and consolidate,
