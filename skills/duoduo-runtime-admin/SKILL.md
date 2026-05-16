@@ -99,6 +99,19 @@ Read [references/usage-archive.md](references/usage-archive.md) for
 the verified `find -mtime +N | xargs mv` recipe, recovery, and the
 race-window note.
 
+## Slash Commands (`/compact`, `/undo`)
+
+Chat-level history controls landed in v0.5.2: `/compact` shrinks the
+context window in place, `/undo [N]` rolls back the last `N`
+exchanges. Both work on Claude and Codex runtimes and flow through
+the normal channel message pipeline (spine → mailbox → drain), so
+the user gets a regular text reply when the command finishes.
+
+Read [references/slash-commands.md](references/slash-commands.md)
+for the runtime semantics (synchronous on Codex, deferred on Claude
+for `/undo`), troubleshooting when a command appears not to work,
+and what to tell a confused user.
+
 ## Operating Rules
 
 - Prefer `duoduo daemon config` over stale documentation when values disagree.

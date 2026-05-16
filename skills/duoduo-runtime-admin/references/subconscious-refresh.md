@@ -33,6 +33,34 @@ Do not run this for:
 - Editing partition prompts locally — that is a normal text edit
   plus `git commit` inside the kernel; no skill needed.
 
+## Partition Status (as of v0.5.2)
+
+The 6 partitions shipped under `bootstrap/subconscious/` are:
+
+| Partition | enabled | Role |
+| --- | --- | --- |
+| `cadence-executor` | yes | Processes the cadence inbox queue; idles when empty. |
+| `memory-committer` | yes | Commits memory/subconscious/config evolution to git. |
+| `memory-weaver` | yes | Orchestrates spine-scanner / entity-crystallizer / intuition-updater. |
+| `pattern-tracker` | yes | Detects behavioral patterns from fragments and writes `pattern-*.md` topics. |
+| `opportunity-scout` | **no** (retired 2026-05-13) | Inert; partition prompt kept as design archaeology. |
+| `working-memory` | **no** (retired 2026-05-14) | Inert; the `@priority.md` broadcast pathway was retired after empirical verification that the directive never inlined from `additionalDirectories`. |
+
+After a refresh that pulls v0.5.2 (or later), users should expect
+`opportunity-scout` and `working-memory` to remain unchecked in
+`playlist.md`. The meta-session scheduler auto-skips disabled
+partitions and advances past them on the next tick.
+
+The v0.5.2 release also lands the GraphSkill consumer contract in
+`bootstrap/meta-prompt.md` (foreground sessions are now taught to
+follow `[[wikilinks]]`, interpret modal tags `[observation]` /
+`[inference]` / `[instruction]` / `[conditional]` /
+`[hypothesis (unratified)]` / `[superseded]`, and probe
+`memory/topics/pattern-*<chore>*.md` before recurring chore-class
+operations). Meta-prompt lives in the npm package's `bootstrap/`
+directory and is read at runtime — no `subconscious/` refresh
+needed for it to take effect.
+
 ## Preconditions
 
 Before doing anything destructive:
