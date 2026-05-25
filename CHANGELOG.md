@@ -2,6 +2,68 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.3] - 2026-05-25
+
+This release promotes Codex from a narrow backend option to a peer
+runtime choice beside Claude, refreshes the shipped subconscious
+prompts, and tightens the stdio terminal experience. It also includes
+dependency/security updates and release-verification fixes.
+
+### Highlights
+
+- **Claude and Codex are peer runtime choices**. Hosts can expose
+  whichever runtimes are actually installed and authenticated. Claude
+  remains the conservative fallback, while Codex can be selected per
+  channel, per job, or globally with `ALADUO_DEFAULT_RUNTIME=codex`.
+- **Feishu setup reflects available runtimes**. Setup cards only show
+  runtime choices the daemon can actually run. If Codex is installed or
+  logged in after the daemon is already running, restart the daemon so
+  availability is re-probed.
+- **Stdio output is cleaner**. Assistant text is buffered more cleanly
+  around status and tool output, reducing visible interleaving in the
+  terminal UI.
+- **Runtime shutdown and packaging are more reliable**. The bundled
+  Claude Agent SDK dependency is updated to the 0.3 line, the Codex
+  runtime path now cleans up its helper process more reliably, and the
+  release verifier works on macOS's default Bash.
+- **Subconscious prompts refreshed**. The v0.5.3 public tag carries
+  updated active partition prompts for recall discipline, evidence
+  discipline, and recurring-pattern convergence. The retired
+  `opportunity-scout` and `working-memory` prompts are no longer part
+  of the published subconscious tree.
+
+### Package versions
+
+- `@openduo/duoduo` → 0.5.3
+- `@openduo/protocol` → 0.5.3
+- `@openduo/channel-feishu` → 0.5.3
+- `@openduo/channel-acp` → 0.5.3
+
+### Migration
+
+For most operators, upgrade the package and restart the daemon:
+
+```bash
+npm install -g @openduo/duoduo@0.5.3
+duoduo daemon restart
+```
+
+If you want Codex routing, install and authenticate the Codex CLI on
+the host, then restart the daemon. Existing live conversations do not
+hot-swap runtime just because a default changed; rebind or archive a
+session when you want a clean switch.
+
+Subconscious prompts are still not auto-upgraded. To adopt the v0.5.3
+partition prompts, use the `subconscious-refresh` procedure from the
+`duoduo-runtime-admin` skill and review the diff before applying it.
+
+### Verification
+
+The release was validated with lint, typecheck, the full local test
+suite, meta-prompt lint, release build/pack dry-run, and the three
+required Linux distribution fixtures: `claude-auth`, `api-key-only`,
+and `omit-optional`.
+
 ## [v0.5.2] - 2026-05-16
 
 This release teaches the foreground agent how to use its own memory
