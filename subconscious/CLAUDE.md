@@ -85,29 +85,3 @@ Common mistakes that waste tool calls — use the correct parameter names:
 | `Glob` | `pattern`, `path` | ~~`file_path`~~                   |
 
 There is no `LS` tool — use `Bash` with `ls` or `Glob` instead.
-
-## Surfacing Insights (Notify)
-
-Some partitions don't just write files — they push thoughts up into
-the conscious mind. The `Notify` tool delivers a message to a
-foreground session's inbox and wakes it.
-
-This is how the subconscious talks to the conscious: not by
-controlling behavior, but by offering something worth noticing.
-
-### Rules
-
-- **High bar**: Only notify when there is something specific,
-  actionable, and timely.
-- **Self-contained**: The target session has no access to your
-  context. `notify_content` must include everything: timestamps,
-  entity names, evidence, suggested actions.
-- **Target selection**: Use `ManageSession` (action: list) to find
-  active foreground sessions. If none exist, write to
-  `memory/CLAUDE.md` instead.
-- **Volume**: At most 2-3 notifications per tick per partition.
-- **Audience**: Notify targets foreground (channel) sessions only.
-  For partition-to-partition coordination, write a note to
-  `subconscious/inbox/` instead.
-- **Sensitive topics**: Financial, personal, health — write to
-  `memory/CLAUDE.md` rather than Notify.
