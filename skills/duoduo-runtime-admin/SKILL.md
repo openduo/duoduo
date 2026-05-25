@@ -1,6 +1,6 @@
 ---
 name: duoduo-runtime-admin
-description: "Manage host-mode duoduo daemon-level settings and diagnostics. Use when the request involves: inspecting daemon status/config/logs, Codex runtime setup (auto-detected from v0.5: install codex + run `codex login`) or sandbox (ALADUO_CODEX_SANDBOX), log verbosity (ALADUO_LOG_LEVEL), telemetry persistence, cadence interval, other ALADUO_* env keys in ~/.config/duoduo/.env, running-daemon diagnostics, refreshing subconscious partition prompts from a published duoduo tag, or archiving / pruning the usage ledger (var/usage growing too large). Also trigger for Chinese: 启用 codex runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, 看看 duoduo daemon 配置, 查 daemon 日志, 升级潜意识, 刷新潜意识, 更新分区提示词, 同步 subconscious, refresh subconscious, update partition prompts, 归档 usage, 清理 usage, 缩 var/usage, 保留最近 N 周 usage. This skill does NOT handle channel-kind settings (Feishu/WeChat/ACP) — those live in duoduo-channel-admin."
+description: "Manage host-mode duoduo daemon-level settings and diagnostics. Use when the request involves: inspecting daemon status/config/logs, Claude/Codex runtime setup (auto-detected from v0.5.3: install codex + run `codex login`) or default runtime selection (ALADUO_DEFAULT_RUNTIME), Codex sandbox (ALADUO_CODEX_SANDBOX), log verbosity (ALADUO_LOG_LEVEL), telemetry persistence, cadence interval, other ALADUO_* env keys in ~/.config/duoduo/.env, running-daemon diagnostics, refreshing subconscious partition prompts from a published duoduo tag, or archiving / pruning the usage ledger (var/usage growing too large). Also trigger for Chinese: 启用 codex runtime, 设置默认 runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, 看看 duoduo daemon 配置, 查 daemon 日志, 升级潜意识, 刷新潜意识, 更新分区提示词, 同步 subconscious, refresh subconscious, update partition prompts, 归档 usage, 清理 usage, 缩 var/usage, 保留最近 N 周 usage. This skill does NOT handle channel-kind settings (Feishu/WeChat/ACP) — those live in duoduo-channel-admin."
 ---
 
 # Duoduo Runtime Admin
@@ -36,6 +36,7 @@ Then explain whether an update is actually needed before changing anything.
 
 Typical keys:
 
+- `ALADUO_DEFAULT_RUNTIME`
 - `ALADUO_LOG_LEVEL`
 - `ALADUO_LOG_RUNNER_THOUGHT_CHUNKS`
 - `ALADUO_LOG_SESSION_LIFECYCLE`
@@ -52,16 +53,20 @@ duoduo daemon restart
 
 unless the user explicitly asked for an edit only.
 
-## Codex Runtime Scope
+## Runtime Selection
 
 Be precise:
 
-- Enabling Codex does not switch all foreground sessions to Codex.
-- The current runtime gate enables Codex as an optional backend for jobs.
-- Verify `codex` is installed and authenticated before enabling it.
+- Claude remains the conservative fallback when no runtime is declared.
+- From v0.5.3 onward, Claude and Codex are peer runtimes for channel
+  sessions, jobs, and eligible background partitions.
+- Runtime selection can happen per actor, per channel kind, or globally with
+  `ALADUO_DEFAULT_RUNTIME=codex`.
+- Verify `codex` is installed and authenticated before routing work to it.
 
-Do not describe Codex enablement as "stdio now runs on Codex" unless the runtime
-actually supports that behavior in the inspected version.
+Do not claim every existing session switches runtime automatically. Existing
+sessions keep their stored conversation state until they are rebound, archived,
+or naturally start a fresh runtime thread under the effective config.
 
 ## Subconscious Refresh
 

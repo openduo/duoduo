@@ -17,10 +17,10 @@ to orient a user before changing anything.
 
 - `kernel_dir/config/<kind>.md`
   Holds per-channel-kind defaults such as `new_session_workspace`,
-  `prompt_mode`, tool allowlists, and the kind-level prompt body.
+  `prompt_mode`, `runtime`, tool allowlists, and the kind-level prompt body.
 - `runtime_dir/var/channels/<channel_id>/descriptor.md`
   Holds per-channel-instance overrides such as `display_name`,
-  `new_session_workspace`, `prompt_mode`, `stream`, tool lists, and the
+  `new_session_workspace`, `prompt_mode`, `runtime`, `stream`, tool lists, and the
   instance-level prompt body.
 - `runtime_dir/var/channels/<channel_id>/`
   Holds per-channel runtime data such as inbox/outbox/session attachments.

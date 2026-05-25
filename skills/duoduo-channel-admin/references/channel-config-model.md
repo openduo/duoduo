@@ -22,6 +22,7 @@ Resolve `kernel_dir` and `runtime_dir` with `duoduo daemon config`.
 - `new_session_workspace`
 - `prompt_mode`
 - `time_gap_minutes`
+- `runtime`
 - `stream`
 - `allowedTools`
 - `disallowedTools`
@@ -30,8 +31,11 @@ Resolve `kernel_dir` and `runtime_dir` with `duoduo daemon config`.
 ### v0.5+ additions
 
 - `runtime` — one of `claude` or `codex`. The agent runtime this instance is
-  bound to. Readers default to `claude` when absent. Normally written by
-  `channel.spawn` during setup rather than edited by hand.
+  bound to. Readers default to `claude` when absent. Set it in a kind
+  descriptor to make a default for all channels of that kind, or in an instance
+  descriptor for one specific channel. For Feishu, prefer the `/setup` card
+  when possible so the plugin's active binding cache and descriptor stay in
+  sync.
 - `bound_by` — channel-local identity of the operator who ran setup
   (e.g. a Feishu `open_id`). Present only on v0.5+ descriptors. Used by
   channel-feishu's `/setup` command to decide whether a re-bind attempt

@@ -185,6 +185,34 @@ upgraders:
   DISABLE_INTERLEAVED_THINKING=1 MAX_THINKING_TOKENS=0` in
   `~/.config/duoduo/.env` and restarting the daemon.
 
+## Runtime selection changes landing in v0.5.3
+
+v0.5.3 treats Claude and Codex as peer runtime choices when both are
+available on the host. Claude remains the default fallback, so existing
+operators do not need to change anything unless they want Codex routing.
+
+- To enable Codex availability, install the `codex` CLI, run
+  `codex login`, and restart the daemon so it re-probes available
+  runtimes.
+- To route one channel kind to Codex, set `runtime: codex` in
+  `kernel/config/<kind>.md`.
+- To route one channel instance to Codex, prefer the channel setup flow
+  when the channel provides one; otherwise update that instance
+  descriptor deliberately.
+- To make Codex the fallback for every actor without a more-specific
+  declaration, set `ALADUO_DEFAULT_RUNTIME=codex` in
+  `~/.config/duoduo/.env` and restart the daemon.
+
+Do not tell users that an existing live conversation hot-swaps runtimes
+the moment a default changes. If they need a clean runtime switch, rebind
+or archive the affected session after inspecting current descriptors.
+
+## Stdio output behavior in v0.5.3
+
+The stdio terminal UI buffers assistant text more cleanly around status
+and tool output. This is a user-interface fix: no migration is required,
+and channel protocols do not change.
+
 ## Subconscious prompts are NOT auto-upgraded
 
 A duoduo version upgrade installs new code. It does **not** change

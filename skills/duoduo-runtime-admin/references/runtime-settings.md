@@ -40,6 +40,9 @@ binary or env from your shell.
 - `ALADUO_LOG_SESSION_LIFECYCLE`
 - `ALADUO_TELEMETRY_ENABLED`
 - `ALADUO_CADENCE_INTERVAL_MS`
+- `ALADUO_DEFAULT_RUNTIME` (`claude` or `codex`): global fallback for actors
+  without a more-specific runtime declaration. Use a channel kind descriptor
+  when only one surface should change.
 - `ALADUO_CODEX_SANDBOX` (codex is auto-detected from v0.5; there is
   no enable flag. See [codex-runtime.md](codex-runtime.md).)
 - `CLAUDE_CODE_EXECUTABLE`: explicit Claude Code runtime override for

@@ -60,13 +60,14 @@ Editable keys by hand:
 - `new_session_workspace`
 - `prompt_mode`
 - `time_gap_minutes`
+- `runtime`
 - `stream`
 - `allowedTools`
 - `disallowedTools`
 - `additionalDirectories`
 
-v0.5 adds three keys normally written by `channel.spawn` (not hand-
-edited): `runtime`, `bound_by`, `bound_at`. See
+v0.5 adds two instance-binding keys normally written by `channel.spawn`
+(not hand-edited): `bound_by`, `bound_at`. See
 [references/channel-config-model.md](references/channel-config-model.md)
 for the full list and the `new_session_workspace` priority rules.
 

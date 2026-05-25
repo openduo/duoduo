@@ -73,6 +73,9 @@ The bot owner's DM is the **zero-prerequisite control surface**:
   kind's default runtime (`kernel/config/feishu.md → runtime`, fallback
   `claude`). No card, no dropped message. The first message flows
   through ingress as normal.
+- Setup cards only show runtimes that the daemon currently reports as
+  available. If Codex is missing after `codex login`, restart the daemon
+  so it re-probes runtime availability.
 - Owner is resolved from `cfg.botOwnerOpenId`:
   `FEISHU_BOT_OWNER` env → fallback `FEISHU_ALLOW_FROM[0]` → undefined.
 - When undefined (zero-config), ANY first DM sender triggers auto-spawn

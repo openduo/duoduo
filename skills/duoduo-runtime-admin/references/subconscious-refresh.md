@@ -33,7 +33,7 @@ Do not run this for:
 - Editing partition prompts locally — that is a normal text edit
   plus `git commit` inside the kernel; no skill needed.
 
-## Partition Status (as of v0.5.2)
+## Partition Status (as of v0.5.3)
 
 The 6 partitions shipped under `bootstrap/subconscious/` are:
 
@@ -50,6 +50,11 @@ After a refresh that pulls v0.5.2 (or later), users should expect
 `opportunity-scout` and `working-memory` to remain unchecked in
 `playlist.md`. The meta-session scheduler auto-skips disabled
 partitions and advances past them on the next tick.
+
+The v0.5.3 release refreshes the active subconscious prompts around
+evidence discipline, recall discipline, and convergence of recurring
+patterns. This affects the shipped prompt files under `subconscious/`
+only after the operator explicitly refreshes from the public tag.
 
 The v0.5.2 release also lands the GraphSkill consumer contract in
 `bootstrap/meta-prompt.md` (foreground sessions are now taught to
