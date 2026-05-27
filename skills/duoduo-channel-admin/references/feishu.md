@@ -16,6 +16,7 @@ card behavior, owner DM, `/setup` routing, 200340 errors, reset, or any
 - Reset a bound channel (when descriptor or session is stale)
 - Outbound media rendering (opus voice notes, image, files)
 - Stale first-time card (v0.5 guard)
+- Web search/fetch disabled by default (re-enable via descriptor)
 - Accepted v0.5 limits (do NOT open as bugs)
 
 ## Install and start
@@ -207,6 +208,15 @@ The setup card and rebind card render this hint inline below the
 require_mention checker (v0.5+), and `duoduo channel feishu doctor`
 includes it in the manual checklist. If a user toggles the box but
 group messages still need @, this scope gap is the most likely cause.
+
+## Web search/fetch disabled by default
+
+A Feishu agent asked to look something up will appear to "have no internet" —
+`WebSearch` / `WebFetch` are default-disabled (headless daemon), so the model
+loops WebSearch → WebFetch → `curl` → gives up. This is policy, not a defect.
+Re-enable by adding them to `allowedTools` in `config/feishu.md` frontmatter
+(or an instance descriptor); see [channel-config-model.md](channel-config-model.md)
+for the full default-deny set and override semantics.
 
 ## Accepted v0.5 limits
 

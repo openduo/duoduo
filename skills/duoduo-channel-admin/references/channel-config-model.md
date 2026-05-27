@@ -28,6 +28,30 @@ Resolve `kernel_dir` and `runtime_dir` with `duoduo daemon config`.
 - `disallowedTools`
 - `additionalDirectories`
 
+## Default-disabled tools
+
+These are disabled by default for every channel session (headless daemon):
+`WebSearch`, `WebFetch`, `AskUserQuestion`, `EnterPlanMode`, `ExitPlanMode`,
+`EnterWorktree`. A disabled tool surfaces to the model as unavailable, not as
+policy — so an agent told to search the web typically loops WebSearch → WebFetch
+→ `curl` → "no internet" rather than reporting it. Check tool config before
+treating that as a defect.
+
+Re-enable by adding to `allowedTools` (kind or instance descriptor):
+
+```yaml
+---
+allowedTools:
+  - WebSearch
+  - WebFetch
+---
+```
+
+`allowedTools` is an override on the default-deny set, **not** an exclusive
+whitelist — every other tool stays available, so list only what you re-enable.
+Read at session creation, not hot-reloaded: restart the daemon (or `/setup` for
+Feishu) after editing.
+
 ### v0.5+ additions
 
 - `runtime` — one of `claude` or `codex`. The agent runtime this instance is
