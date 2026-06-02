@@ -2,6 +2,95 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.4] - 2026-06-02
+
+This release makes the `duoduo` CLI a first-class surface for both human
+operators and agents: sessions can be named, listed, and woken by name;
+the CLI's output and install paths are hardened now that an agent may run
+`duoduo …` itself. It also stops recurring background jobs from growing an
+unbounded conversation thread, refreshes the shipped subconscious prompts,
+and includes runtime-robustness and dependency updates.
+
+### Highlights
+
+- **`duoduo session` command**. A new CLI surface to manage sessions:
+  - `duoduo session list [--kind …] [--named] [--all] [--json]` — the live
+    route table of every session the daemon knows.
+  - `duoduo session alias <key> "<name>"` — give a session a human label so
+    it is legible in `list` and usable as a wake target.
+  - `duoduo session notify <target> -m "<msg>"` — wake another session by
+    key or alias with a source-tagged notification (for cross-session
+    orchestration). Only foreground/job sessions are valid targets; the
+    kernel/subconscious plane is isolated and refused.
+  - `duoduo session archive <key>` — move (never delete) a session's
+    artifacts.
+- **`session list` hides orphan job sessions by default**. A `job:` session
+  whose owning job is no longer in the active set (e.g. a job recreated with
+  a changed schedule/workspace, or one whose definition was deleted) is now
+  hidden by default so the listing agrees with the job list. Pass `--all`
+  (alias `--include-orphans`) to surface them, marked `(orphan)`.
+- **Recurring jobs can opt out of thread reuse (`stateless`)**. A periodic
+  job that does not depend on prior-run state can set `stateless: true` so
+  each run starts a fresh thread instead of resuming (and growing) one
+  long-lived conversation. Stateless runs receive an explicit contract:
+  state is not retained, any dependency must be persisted, and the run must
+  end with an acceptance rubric. `ManageJob` also always exposes the
+  effective `runtime` field. (`stateless` is rejected on keepalive jobs,
+  whose whole point is a persistent lifecycle.)
+- **CLI output and install hardening**. Now that an agent may invoke the CLI
+  directly: absolute home paths are collapsed to `~` in command output;
+  `duoduo daemon logs` tails the last lines by default (`--lines N` / `--all`
+  to override); installing a channel plugin from a local `.tgz` requires the
+  explicit `--from-path` flag (npm-package installs are unchanged); container
+  lifecycle commands are removed from the default agent-facing help; and
+  interactive-only commands fail fast with an actionable message under a
+  non-interactive (non-TTY) invocation instead of hanging.
+- **Degraded-but-healthy startup when a runtime is missing**. If the native
+  Claude runtime binary is unavailable (e.g. an optional dependency failed to
+  install), the daemon now boots healthy and surfaces a per-session
+  "runtime unavailable" error instead of failing silently.
+- **More reliable background-job autocompaction**. A recurring Codex job no
+  longer mishandles a turn-terminal notification, which previously could let
+  a job thread grow until it repeatedly hit compaction.
+- **Deterministic mailbox ordering**. Mailbox items that arrive within the
+  same millisecond now drain in a deterministic FIFO order.
+- **Subconscious prompts refreshed**. The shipped active-partition prompts
+  are updated: the recurring-pattern concept is reframed into distinct
+  "lesson" and "groove" nodes, the intuition board is no longer autoloaded
+  as a partition gradient, and the entity/effectiveness crystallizer is
+  scoped more tightly.
+
+### Package versions
+
+- `@openduo/duoduo` → 0.5.4
+- `@openduo/protocol` → 0.5.4
+- `@openduo/channel-feishu` → 0.5.4
+- `@openduo/channel-acp` → 0.5.4
+
+### Migration
+
+For most operators, upgrade the package and restart the daemon:
+
+```bash
+npm install -g @openduo/duoduo@0.5.4
+duoduo daemon restart
+```
+
+If you previously installed a channel plugin from a local tarball, note that
+this now requires `duoduo channel install --from-path <file.tgz>`; installing
+by npm package name is unchanged.
+
+Subconscious prompts are still not auto-upgraded. To adopt the v0.5.4
+partition prompts, use the `subconscious-refresh` procedure from the
+`duoduo-runtime-admin` skill and review the diff before applying it.
+
+### Verification
+
+The release was validated with lint, typecheck, the full local test suite
+(2821 passing), meta-prompt lint, release build/pack dry-run, and the three
+required Linux distribution fixtures: `claude-auth`, `api-key-only`, and
+`omit-optional`.
+
 ## [v0.5.3] - 2026-05-25
 
 This release promotes Codex from a narrow backend option to a peer
