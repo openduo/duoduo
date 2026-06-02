@@ -101,10 +101,15 @@ If you are upgrading an already-running plugin to a new version, the
 sequence is:
 
 ```bash
-duoduo channel install <new.tgz>     # disk only, old process keeps serving
-duoduo channel <kind> stop           # release the old version
-duoduo channel <kind> start          # boot the new version
+duoduo channel install --from-path <new.tgz>   # disk only, old process keeps serving
+duoduo channel <kind> stop                     # release the old version
+duoduo channel <kind> start                    # boot the new version
 ```
+
+Installing from a local tarball requires the explicit `--from-path` flag — a
+local `.tgz` is extracted and run as a daemon plugin, so it is gated against
+accidental or agent-driven arbitrary-code installs. Installing by npm package
+name needs no flag (`duoduo channel install @openduo/channel-feishu`).
 
 If `logs` is quiet or `status` reports a crash loop, the handshake
 with the daemon failed — check `duoduo daemon logs` for the

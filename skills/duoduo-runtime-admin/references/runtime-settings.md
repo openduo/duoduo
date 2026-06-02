@@ -7,8 +7,14 @@ Use this reference when editing persistent host-mode settings.
 ```bash
 duoduo daemon status
 duoduo daemon config
-duoduo daemon logs
+duoduo daemon logs          # tails the last N lines by default
+duoduo daemon logs --lines 500   # show more
+duoduo daemon logs --all         # full log (can be large)
 ```
+
+`duoduo daemon logs` shows the **tail** by default (like `tail` / `docker
+logs`), so it stays readable when run via Bash; pass `--lines N` for more or
+`--all` for the whole file.
 
 To check whether the installed CLI is behind npm:
 

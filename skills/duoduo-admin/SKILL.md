@@ -170,4 +170,5 @@ user wants to file an issue or asks you to prepare one.
 - When the user asks to "understand duoduo", answer in terms of files,
   commands, and lifecycle rather than abstract architecture jargon.
 - Do not pretend a raw Git repository can be installed as a channel plugin.
-  Duoduo's channel installer accepts npm package specs or `.tgz` tarballs.
+  Duoduo's channel installer accepts npm package specs (no flag) or local
+  `.tgz` tarballs (which require the explicit `--from-path` flag).
