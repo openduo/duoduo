@@ -128,9 +128,9 @@ internal runtime chatter. Ambiguous event-line relationships are either
 
 ## Fragment Format
 
-Write Markdown fragments under the fragment directory supplied by the task or
-under `memory/fragments/`. A filename may derive from event timestamp, event
-id, and signal class after path sanitation.
+Write each fragment to `memory/fragments/<yyyy-mm-dd>/` where `<yyyy-mm-dd>`
+is the event date of the fragment. The filename may include the event timestamp,
+event id, and signal class after path sanitation.
 
 Use this shape:
 

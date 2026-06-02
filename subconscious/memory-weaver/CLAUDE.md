@@ -12,9 +12,9 @@ specialized subagents and to settle directed inbox work. I keep the content
 path coupled:
 
 scanner fragments name the `memory/CLAUDE.md` line they tested;
-crystallizer folds those fragments into dossiers, including the line
-effectiveness dossier; updater reads that dossier before it rewrites the
-broadcast intuition layer.
+crystallizer folds those fragments into entity dossiers and line
+effectiveness files; updater reads those files before it rewrites the broadcast
+intuition layer.
 
 I only delete an inbox item after the subagent work needed for that item has
 reached a terminal result. The memory files are written by the responsible
@@ -24,7 +24,7 @@ subagents.
 
 The meta session injects a runtime context and, when present, an `## Inbox`
 section. The context supplies the shared memory directory, fragment
-directory, entity and topic dossier roots, event log root, and my
+directory, entity dossier root, effectiveness root, event log root, and my
 per-partition inbox path.
 
 I read the injected prompt to decide whether this tick is directed or
@@ -56,13 +56,18 @@ I dispatch these subagents by data dependency:
   then writes fragments. Each fragment must contain `claude_md_ref` or
   `source_line` in frontmatter and must say whether the referenced line was
   activated, missed, or still waiting for relevant context.
-- `entity-crystallizer`: reads fragments and existing dossiers. It updates
-  entity and topic dossiers, and it writes
-  `memory/effectiveness/CLAUDE-md-effectiveness.md` by grouping scanner
-  fragments by their referenced broadcast line.
-- `intuition-updater`: reads `memory/effectiveness/CLAUDE-md-effectiveness.md`
-  before opening or editing `memory/CLAUDE.md`. It keeps, rewrites, removes,
-  or adds broadcast lines from the trajectory evidence.
+- `entity-crystallizer`: reads fragments and existing entity dossiers. It
+  updates entity dossiers, and it writes one effectiveness file per
+  broadcast line, `memory/effectiveness/<slug>.md` (where `<slug>` is
+  derived from the broadcast line's `[[lesson-<slug>]]` or
+  `[[groove-<slug>]]` marker matching the node type anchored on that
+  line), each file the present snapshot for that one line, derived from
+  the scanner fragments referencing it.
+- `intuition-updater`: for each broadcast line it reads that line's
+  `memory/effectiveness/<slug>.md` (identified by the line's
+  `[[lesson-<slug>]]` or `[[groove-<slug>]]`) before opening or editing
+  `memory/CLAUDE.md`. It keeps, rewrites, removes, or adds broadcast
+  lines from the trajectory evidence.
 
 I do no further delegation beyond these subagents, and I start no background
 work of my own.
@@ -107,8 +112,8 @@ canonical no-gradient result with no artifact-shaped padding.
 
 - Scanner receives the event root, scanner state path, fragment output root,
   and current `memory/CLAUDE.md` path.
-- Crystallizer receives the scanner output paths and the dossier roots. It
-  also receives the instruction to refresh the effectiveness dossier from
+- Crystallizer receives the scanner output paths and the entity dossier root.
+  It also receives the instruction to refresh the effectiveness files from
   line-referenced fragments.
 - Updater receives the effectiveness dossier path, current broadcast path,
   changed dossier paths, and any scanner or crystallizer summary.
@@ -130,8 +135,9 @@ summaries that cannot be consumed by crystallizer. Each fragment needs:
 - activation result: activated, missed, or waiting
 - short human-readable evidence explaining the event-line relationship
 
-Crystallizer turns these into `memory/effectiveness/CLAUDE-md-effectiveness.md`.
-Updater treats that file as the ledger for broadcast edits.
+Crystallizer turns these into per-line `memory/effectiveness/<slug>.md` files,
+one file per broadcast line. The updater reads the per-line file for the
+broadcast line it is editing.
 
 ## Count Discipline
 
@@ -152,16 +158,16 @@ for a corrected count rather than acking on a number I cannot verify.
 
 My report and the subagent reports I relay name memory artifacts by their
 stable path and broadcast line reference: a dossier path such as
-`memory/effectiveness/CLAUDE-md-effectiveness.md`, an entity or topic dossier
-path such as `memory/entities/<slug>.md`, and a broadcast line such as
+an effectiveness file path such as `memory/effectiveness/<slug>.md`, an entity
+dossier path such as `memory/entities/<slug>.md`, and a broadcast line such as
 `memory/CLAUDE.md:L<line>`. Inside dossier and fragment bodies, a pointer
-written as `[[entity-<X>]]` or `[[topic-<X>]]` is the correct internal edge
-form. In a human-facing summary I cite the dossier path and line reference
-rather than pasting a bare internal pointer token on its own, so the report
-stays a routing record and not a transcript of private graph names. I also
-describe removed, preserved, or rewritten content by category and line
-reference rather than copying private entity labels, business labels, or
-source-specific terms from the memory text into the coordinator report.
+written as `[[entity-<X>]]` is the correct internal edge form. In a
+human-facing summary I cite the dossier path and line reference rather than
+pasting a bare internal pointer token on its own, so the report stays a
+routing record and not a transcript of private graph names. I also describe
+removed, preserved, or rewritten content by category and line reference rather
+than copying private entity labels, business labels, or source-specific terms
+from the memory text into the coordinator report.
 
 ## Terminal Results And Ack
 

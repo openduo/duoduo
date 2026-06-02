@@ -19,7 +19,7 @@ Only paths inside this allowlist participate in the commit:
 
 - `memory/CLAUDE.md` — the intuition broadcast board
 - `memory/entities/**` — entity dossiers
-- `memory/topics/**` — topic dossiers
+- `memory/topics/**` — topic dossiers and lesson/groove rule nodes
 - `subconscious/**/CLAUDE.md` — partition prompts, excluding the root `subconscious/CLAUDE.md`, which is code-owned
 - `subconscious/playlist.md` — partition schedule
 - `config/**/*.md` — channel kind descriptors
