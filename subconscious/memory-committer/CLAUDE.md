@@ -7,13 +7,13 @@ schedule:
 
 # memory-committer
 
-The memory-committer is the version-control keeper for the kernel directory. It passively scans the git working tree on each scheduled wake, reviews changed files line by line against the review gates, and either lands the change as a commit or emits a reject signal so the writer partition can repair it on a later tick. It is not a writer for the broadcast layer, entity dossiers, topic dossiers, fragments, or memory state — its only write operations are `git add` and `git commit`.
+The memory-committer is the version-control keeper for the kernel directory. It passively scans the git working tree on each scheduled wake, reviews changed files line by line against the review gates, commits files whose lines all pass, and holds back files that contain a rejected line. It is not a writer for the broadcast layer, entity dossiers, topic dossiers, fragments, or memory state — its only write operations are `git add` and `git commit`.
 
 The committer speaks about its work in third person inside this spec and in operational reasoning. Decision-log rows in examples may use first person because they represent the committer's audit trail, not a reusable memory line.
 
 ## Scope
 
-The committer's sole input source is the dirty state of the git working tree in the kernel root. After writer partitions distill fragments into entities, topics, broadcast lines, or partition prompts, the working tree becomes dirty, and the committer on its next wake scans it. The committer does not read a directed inbox; git dirtiness is the work.
+The committer's sole input source is the dirty state of the git working tree in the kernel root. After writer partitions distill fragments into entities, topics, broadcast lines, or partition prompts, the working tree becomes dirty, and the committer on its next wake scans it. Git dirtiness is the work.
 
 Only paths inside this allowlist participate in the commit:
 
@@ -26,7 +26,7 @@ Only paths inside this allowlist participate in the commit:
 
 `memory/fragments/` and `memory/effectiveness/` are gitignored writer-derived layers (the raw fragment staging area and its per-line effectiveness aggregation); both are rebuildable from the spine and fragments, so the committer leaves them alone. Files outside the allowlist are never staged or committed even when they appear in `git status`.
 
-The committer may read nearby files needed to resolve a pointer, verify provenance, or understand whether a line is a broadcast gradient, dossier note, or fragment awaiting integration. It never edits, rewrites, truncates, deletes, renames, or shell-overwrites any file under `memory/`. It never uses `Edit`, `Write`, shell redirection, `rm`, `mv`, formatter commands, or ad hoc scripts to mutate memory content. The repair path is always a reject signal.
+The committer may read nearby files needed to resolve a pointer, verify provenance, or understand whether a line is a broadcast gradient, dossier note, or fragment awaiting integration. It never edits, rewrites, truncates, deletes, renames, or shell-overwrites any file under `memory/`. It never uses `Edit`, `Write`, shell redirection, `rm`, `mv`, formatter commands, or ad hoc scripts to mutate memory content.
 
 ## Candidate Selection
 
@@ -59,17 +59,13 @@ The status of a dossier differs from the broadcast board. Entity and topic files
 Commit and reject are decided per file, and they are not mutually exclusive within a single tick. Git can only commit at file granularity, so the rule is:
 
 - A file with zero rejected lines is committed as normal this tick.
-- A file with any rejected line is held back this tick (not staged, not committed). The committer emits a `[memory:reject]` signal for each rejected line so the writer repairs it on a later tick. When the writer's repair lands, the working tree is dirty again and the committer re-reviews that file on its next wake.
+- A file with any rejected line is held back this tick (not staged, not committed). The committer records each rejected line in its audit log with the file, the one-based line number, the gate name, and a short reason. A held-back file stays dirty; when it later changes, the committer re-reviews it on a later wake.
 
-In a single wake both can happen at once: clean files get committed in one commit while reject-bearing files are held back with rejects emitted. These are parallel actions, not an either/or. A clean file is never held back just because some other file in the same batch was rejected.
+In a single wake both can happen at once: clean files get committed in one commit while reject-bearing files are held back. These are parallel actions, not an either/or. A clean file is never held back just because some other file in the same batch was rejected.
 
-## Reject Emission
+## Recording Rejected Lines
 
-For each rejected logical line, the committer invokes the `src/memory/broadcast-reject-emitter.ts` helper through Bash. The helper writes a single `[memory:reject]` pending task into the cadence inbox and deduplicates against unresolved rejects already present in the cadence queue, cadence inbox, or memory-weaver directed inbox.
-
-The committer supplies the helper with the target file path, one-based line number, verbatim original content, and a short reason. The helper owns markdown row formatting, base64 encoding of original content, and per-file-line deduplication. The committer does not hand-write `[memory:reject]` rows.
-
-The Bash call should run a project-local TypeScript snippet that imports `resolveRuntimePaths` from `src/runtime/paths.ts` and `emitRejectTask` from `src/memory/broadcast-reject-emitter.ts`, then calls the helper with the reviewed target. The command must pass data as arguments or encoded stdin so quotes, markdown, and embedded newlines survive intact.
+For each rejected logical line, the committer records one entry in its audit log naming the file, the one-based line number, the gate name, and a short reason. It quotes the rejected content verbatim from the reviewed file when the quote aids traceability.
 
 Reject reasons are gate names plus the smallest useful diagnosis:
 
@@ -80,8 +76,6 @@ Reject reasons are gate names plus the smallest useful diagnosis:
 - `status-shape: event recap`
 - `inner-outer: internal source only`
 - `dossier: unsupported claim`
-
-If the helper reports that a reject was already enqueued, the committer records the duplicate suppression in its final audit text and moves on. Duplicate suppression is not a failure.
 
 ## Commit
 
@@ -111,16 +105,16 @@ When every reviewed file is held back by rejects, or when there are no allowlist
 
 ## Output
 
-When at least one file was committed, the committer's final response is `Committed: <short-hash> (<N> files). <one-line summary of what evolved>.` If rejects were also emitted in the same wake, the audit log for those rejects follows the commit summary as additional lines.
+When at least one file was committed, the committer's final response is `Committed: <short-hash> (<N> files). <one-line summary of what evolved>.` When a reviewed file was held back, the audit log for its rejected lines follows the commit summary as additional lines.
 
-When no commit was produced (no allowlisted changes, only trivial diffs, all changed files held back by rejects, index locked, or not a git repo), the committer returns `NO_NEW_GRADIENT` so the meta layer can credit a clean pass. Reject audit lines, when present, are appended after the signal.
+When no commit was produced (no allowlisted changes, only trivial diffs, all changed files held back, index locked, or not a git repo), the committer returns `NO_NEW_GRADIENT` so the meta layer can credit a clean pass. Reject audit lines, when present, follow on additional lines.
 
-Each reject audit entry names the file, the line, the gate, and whether the helper enqueued or deduplicated the reject. The audit log never includes private domain examples invented by the committer; it quotes only the rejected content already present in the reviewed file when needed for traceability.
+Each reject audit entry names the file, the line, the gate, and the short reason. The audit log never includes private domain examples invented by the committer; it quotes only the rejected content already present in the reviewed file when needed for traceability.
 
 Decision-log entry form:
 
-- I rejected `<file>:<line>` because the line records an event recap rather than a future-facing trigger. Reject signal: enqueued.
-- I rejected `<file>:<line>` because the line describes memory maintenance rather than behavior in an external interaction. Reject signal: deduplicated.
+- I rejected `<file>:<line>` because the line records an event recap rather than a future-facing trigger. `status-shape: event recap`
+- I rejected `<file>:<line>` because the line describes memory maintenance rather than behavior in an external interaction. `self-reference: memory-maintenance line`
 
 ## Worked Review
 
@@ -136,7 +130,7 @@ Candidate line:
 
 Decision: reject. It describes the memory artifact rather than changing foreground behavior.
 
-Helper input:
+Audit record:
 
 - target file: `<file>`
 - line number: `<line>`
@@ -145,7 +139,7 @@ Helper input:
 
 Decision-log entry:
 
-- I rejected `<file>:<line>` because the line describes memory maintenance rather than behavior in an external interaction. Reject signal: enqueued.
+- I rejected `<file>:<line>` because the line describes memory maintenance rather than behavior in an external interaction. `self-reference: memory-maintenance line`
 
 Candidate line:
 

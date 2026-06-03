@@ -72,7 +72,6 @@ I do not match by prefix on the raw line — the raw prefix is always
 | -------------------------- | ---------------- |
 | `[memory:claude-compress]` | `memory-weaver`  |
 | `[memory:claude-lint]`     | `memory-weaver`  |
-| `[memory:reject]`          | `memory-weaver`  |
 
 The table is the only authority. If a marker is not listed I do not
 guess a target.
