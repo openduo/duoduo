@@ -47,12 +47,18 @@ outside the normal turn-finalize path. Deferring keeps the
 
 ## What to tell the user when something looks off
 
-**"I typed `/compact` but nothing happened."** — Check that the
-session is on v0.5.2 or later (`duoduo daemon status` reports the
-running version). On versions before v0.5.2, the Claude SDK silently
-ate `/compact` (compaction did run, but the gateway never surfaced
-the boundary as a reply); on Codex, it was treated as plain text and
-ignored. v0.5.2 fixes both.
+**"I typed `/compact` but nothing happened."** — Check the running
+version with `duoduo daemon status`. Before v0.5.2 the Claude SDK
+silently ate `/compact` (compaction ran, but the gateway never
+surfaced the boundary as a reply); on Codex it was treated as plain
+text and ignored — v0.5.2 fixed both of those. There was a further
+gap on **Claude channel streaming sessions**: `/compact` compacted the
+on-disk history while the live streaming subprocess kept the full
+in-memory prefix, so the token count never actually dropped and a long
+session could still hit `too_many_total_tokens`. That is fixed in
+**v0.5.5** (the compact is now routed in-band on the live streaming
+subprocess). If a heavy Claude session still climbs in tokens after
+`/compact`, confirm it is on v0.5.5+.
 
 **"`/undo` on Claude didn't seem to roll back."** — The rollback
 materializes on the *next* user message. If the user types `/undo`
@@ -87,10 +93,27 @@ repo for the full architectural decisions (Qa-Qe). The short version:
 spine + mailbox is aladuo's only control plane, so slash commands
 must flow through it like any other channel input — no second queue.
 
+## `/clear` and `/reset` (session reset)
+
+`/reset` is an alias for `/clear`. Both drop the session's agent memory:
+the next message starts a fresh agent session with a new `sdk_session_id`.
+These are gateway commands (interrupt-now, different runtime path from
+`/compact` / `/undo` above).
+
+As of **v0.5.5**, the fresh session's first turn carries a one-time notice
+telling it that it was reset — start fresh, do not resume the prior
+session's pending work — and the **previous** `sdk_session_id` is retained
+in that notice. If the user recalls something from before the reset, the
+new session can use that id to look up the prior session's history
+(locating a session by its id is the runtime's own knowledge; the notice
+deliberately does not spell out a path). The notice is runtime-neutral and
+fires once. If the user's first post-reset message is itself a slash
+command, the notice holds back to the next normal message (slash-prefixed
+input skips runtime-context injection by design).
+
 ## When this skill does NOT apply
 
-- `/clear` and `/cancel` — those are interrupt-now semantics and
-  bypass the drain loop. Different runtime path; this skill does
-  not cover them.
+- `/cancel` — interrupt-now semantics, bypasses the drain loop. Different
+  runtime path; this skill does not cover it.
 - Custom slash commands that an operator wires into their own
   channel — out of scope.

@@ -5,7 +5,11 @@ to orient a user before changing anything.
 
 ## Core Surfaces
 
-- `duoduo daemon status`: runtime health, pid, runtime mode
+- `duoduo daemon status`: runtime health, pid, runtime mode, plus the cadence
+  heartbeat (last tick / interval), subconscious round progress (done/total),
+  and the `memory_check` experiment-flag state — the reliable way to confirm an
+  experiment flag landed, since the background daemon's env is not visible via
+  `ps`
 - `duoduo daemon config`: effective config and resolved paths
 - `duoduo daemon restart`: replace the running background daemon with a freshly
   started process that picks up new code and env-backed settings

@@ -49,7 +49,7 @@ operator identity). Read the matrix top-to-bottom; the first match wins.
 
 | chatType | configured? | descriptor        | operator           | behavior                                                        |
 | -------- | ----------- | ----------------- | ------------------ | --------------------------------------------------------------- |
-| group    | no          | —                 | any allowlisted    | full setup card (no ⌂ workspace-root option)                    |
+| group    | no          | —                 | any allowlisted    | full setup card; ⌂ workspace-root option shown AND pre-selected as the default project |
 | group    | yes         | v0.5 (bound_by)   | bound_by           | compact rebind card (mention toggle only)                       |
 | group    | yes         | v0.5 (bound_by)   | other              | plain-text refusal                                              |
 | group    | yes         | pre-v0.5 (no bound_by) | allowlisted     | compact rebind card                                             |
@@ -61,9 +61,18 @@ operator identity). Read the matrix top-to-bottom; the first match wins.
 | p2p      | yes         | v0.5 bound_by     | non-owner          | setup card (no ⌂) — secondary DM flow                           |
 | p2p      | yes         | pre-v0.5 (no bound_by) | any            | setup card (no ⌂) — legacy compatibility                        |
 
-The **⌂** ("workspace root") dropdown entry is reserved for the
-owner's main DM auto-spawn only. Every other render hides it. Granting
-guests access to the root workspace would leak the whole project tree.
+The **⌂** ("workspace root") dropdown entry:
+
+- **Owner main DM** — bound automatically via auto-spawn (no card).
+- **First-time group setup card** — shown AND pre-selected as the
+  default project. A group whose workspace has no discovered
+  sub-projects would otherwise present an empty dropdown, so clicking
+  Start sent no project and the bind failed. With ⌂ as the default,
+  clicking Start with no change binds the group to the workspace root;
+  the operator can still pick a narrower sub-project from the same
+  dropdown.
+- **Secondary (non-owner) DMs** — hidden. These are guest accesses;
+  exposing the root workspace would leak the whole project tree.
 
 ## Main session contract (owner DM)
 
@@ -161,6 +170,22 @@ The Feishu gateway renders daemon-produced attachments according to MIME:
 When the agent calls `QueueOutboundAttachment` (MCP tool) with an `.opus`
 file, the gateway uploads it as a voice message bubble that the user can
 play with one tap. Useful for generated voice replies and audio summaries.
+
+## Card footer (experiment, v0.5.5)
+
+Setting `ALADUO_EXP_FEISHU_CARD_FOOTER=1` (default off) adds a one-line ops
+footer to the finalized streaming card: `elapsed · ↑in ↓out · cost` on a
+Claude turn, or `elapsed · N steps` on a Codex turn (Codex token counts are
+thread-cumulative and it reports no cost, so the step count is the only honest
+per-turn figure). The footer only appears when the reply finishes; the
+streaming loading animation during generation is the platform's, unchanged.
+
+This flag is **read by the Feishu channel process**, not the daemon. Set it in
+`~/.config/duoduo/.env`, then restart the channel
+(`duoduo channel feishu stop && duoduo channel feishu start`) — a daemon
+restart alone will not pick it up. It must also be present in the channel
+package's `envAllowlist` (it is, from v0.5.5). Confirm it reached the process
+with `ps eww <feishu-pid> | tr ' ' '\n' | grep ALADUO_EXP_FEISHU_CARD_FOOTER`.
 
 ## Stale first-time card defense (v0.5)
 

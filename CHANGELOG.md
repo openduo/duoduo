@@ -2,6 +2,65 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.5] - 2026-06-09
+
+This release adds an opt-in Feishu card footer that surfaces each turn's
+cost/effort, makes a reset session aware that it was reset, and ships the
+first mechanical memory-maintenance lints. It also fixes a `/compact` gap on
+Claude streaming sessions and several Feishu setup-card regressions.
+
+### Highlights
+
+- **Feishu card footer (experiment, default off)**. Set
+  `ALADUO_EXP_FEISHU_CARD_FOOTER=1` to add a one-line ops footer to the
+  finalized streaming card: `elapsed · ↑in ↓out · cost` on a Claude turn, or
+  `elapsed · N steps` on a Codex turn (Codex token counts are
+  thread-cumulative and it reports no cost, so the step count is the only
+  honest per-turn figure). The flag is read by the Feishu channel process —
+  restart the channel, not just the daemon, after setting it.
+- **Reset sessions know they were reset**. After `/clear` (or its `/reset`
+  alias), the fresh agent session's first turn now carries a one-time notice:
+  start fresh, do not resume the prior session's pending work, and the
+  previous session id is retained so the new session can look up the prior
+  history if the user recalls something from before the reset. The notice is
+  runtime-neutral.
+- **`/compact` fixed on Claude streaming sessions**. Previously `/compact`
+  compacted the on-disk history while the live streaming subprocess kept the
+  full in-memory prefix, so the token count never dropped and a long session
+  could still hit `too_many_total_tokens`. The compact is now routed in-band
+  on the live subprocess.
+- **Mechanical memory maintenance (experiment, default off)**. A new
+  cadence-driven memory lint measures the memory tree and routes convergence
+  signals to the subconscious partitions. `ALADUO_EXP_MEMORY_CHECK=1` enables
+  the measure-and-notify lints; `ALADUO_EXP_MEMORY_FORGET=1` additionally lets
+  it remove long-stale, board-unreachable orphan nodes (git-recoverable).
+  **Refresh this host's subconscious partitions to v0.5.5 before enabling
+  these** — the lint's signals are version-coupled to the partition prompts
+  that consume them.
+- **`daemon status` shows more**. `duoduo daemon status` now reports the
+  cadence heartbeat (last tick / interval), subconscious round progress, and
+  the memory-check experiment-flag state — the reliable way to confirm an
+  experiment flag took effect, since the background daemon's env is not
+  visible via `ps`.
+
+### Feishu setup fixes
+
+- First-time **group** setup cards now show and pre-select the workspace-root
+  (⌂) option, so a group whose workspace has no discovered sub-projects no
+  longer dead-ends with an empty project dropdown.
+- The setup card's project dropdown uses the correct default-selection field,
+  fixing a regression where the pre-selected project was rejected.
+- Forwarding an interactive card to the bot now renders the real content
+  instead of an `[interactive]` placeholder.
+
+### Other fixes
+
+- A `workspace` job whose directory or `CLAUDE.md` is removed after creation
+  now fails the run explicitly instead of running silently with empty context.
+- Skip-rewind notices only inject on a genuine human turn, so periodic empty
+  runs no longer re-state the prior skip reason every tick.
+- Parallel worker-completion notifications are coalesced into one turn.
+
 ## [v0.5.4] - 2026-06-02
 
 This release makes the `duoduo` CLI a first-class surface for both human
