@@ -135,6 +135,22 @@ Once the user has approved:
    done
    ```
 
+   **Frontmatter-aware merge (required for partition `CLAUDE.md` files).**
+   A partition `CLAUDE.md`'s YAML frontmatter mixes two ownerships:
+   `schedule:` keys (`enabled` / `cooldown_ticks` / `max_duration_ms`) are
+   **user-tuned cost config** — they directly set how often the partition
+   spends money — while the prompt body and the `contract:` block are
+   code-owned and must follow upstream. A blind wholesale `cp` of a
+   partition `CLAUDE.md` silently reverts the user's cooldown tuning to
+   the upstream baseline.
+
+   So for each partition `CLAUDE.md` that exists on BOTH sides: take the
+   upstream file, but if the local file's `schedule:` values differ from
+   the upstream defaults (the user tuned them), re-apply the local
+   `schedule:` keys onto the upstream frontmatter before writing. Body and
+   `contract:` always come from upstream; `schedule:` keys the user tuned
+   are preserved. Show the user which schedule values were preserved.
+
 2. Commit the result inside the kernel git repo:
 
    ```bash
@@ -150,6 +166,41 @@ Once the user has approved:
    ```bash
    rm -rf "$tmp"
    ```
+
+## The `contract:` Frontmatter Block (memory-check consumer declaration)
+
+Official partitions shipped from upstream carry a `contract:` block in
+their `CLAUDE.md` frontmatter:
+
+```yaml
+contract:
+  partition: pattern-tracker
+  consumes: [node-converge.v1, revise.v1, orphan-newborn.v1]
+```
+
+This is a **machine-read consumer declaration**, invisible to the
+partition itself (frontmatter is stripped before the prompt reaches the
+model). It tells the daemon's mechanical memory check which signal kinds
+this version of the partition prompt knows how to consume. The gate rule,
+per partition:
+
+- **Valid declaration present** → it alone decides: the daemon posts a
+  signal iff its kind is in `consumes`. The env flag is ignored. So
+  **refreshing is what switches memory check on for a partition** — the
+  declaration travels in the same file as the prompt it certifies.
+- **No declaration (un-refreshed official, or user-custom partition)** →
+  falls back to the legacy `ALADUO_EXP_MEMORY_CHECK` env flag during the
+  transition: flag on → posted to as before; flag off → not posted to.
+- **Broken/forged declaration** (unparseable frontmatter falls back like
+  no-declaration; a `partition:` name that does not match the directory
+  never does) and **disabled partitions** (`schedule.enabled: false`) →
+  not posted to regardless of the flag.
+
+Do not hand-edit the `contract:` block. `partition:` must equal the
+directory name — the daemon treats a mismatch as unreadable and stops
+posting (this is the guard against copying one partition's prompt into
+another's directory). `duoduo daemon status` shows each partition's
+contract state and declared kinds.
 
 ## After the Refresh
 
