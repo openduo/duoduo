@@ -53,8 +53,13 @@ judgment.
 
 A coordinator session keeps the running judgment across weeks; short-lived
 helper tasks do the heavy fetching and reading, and their results wake the
-coordinator. Trackers can sleep indefinitely and wake again — see "pause"
-below.
+coordinator. For each round, the coordinator keeps a concrete checklist for
+what counts as done, reads each helper's actual output as it arrives, and sends
+follow-up helpers for anything still missing. If a piece truly cannot be
+completed, the round is delivered with that gap called out instead of hidden;
+once the checklist is met or the gap is explicit, the single supervising
+heartbeat reports the round and goes dormant until the next wake. Trackers can
+sleep indefinitely and wake again — see "pause" below.
 
 ## Choosing engine and model in plain words
 
