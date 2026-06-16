@@ -2,6 +2,61 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.6] - 2026-06-16
+
+This release ships `/model` session-level model switching, `/loop` as a
+first-class recurring-task primitive, a cross-runtime usage footer, Skip
+lifecycle hardening, and dependency updates (SDK 0.3.178).
+
+### Highlights
+
+- **`/model` — session-level model switching (Claude, experimental)**. Type
+  `/model` to list available models, `/model <id>` to switch the running
+  session, `/model reset` to restore the daemon default. On Claude sessions
+  the change takes effect on the next turn; on Codex sessions it is applied
+  at the next thread fork. Unknown model ids return an error rather than
+  silently accepting the request.
+- **`/loop` — runtime-agnostic recurring tasks**. Kick off a self-pacing
+  loop with `/loop <task>`. The loop runs as a job, paces itself via
+  `ScheduleWakeup`, and carries a concrete acceptance rubric so each
+  iteration can verify its own progress. Per-job model override is
+  supported; gateway injection means `/loop` works from any channel without
+  special channel code. Full rubric/verify/deliver-with-gaps discipline is
+  documented in the `duoduo-loop` skill.
+- **Cross-runtime usage footer**. Every finalized turn now appends a
+  one-line footer: `↑ in · cache% · ↓ out · $cost` for Claude turns, step
+  count for Codex turns. The footer also shows which model was actually
+  billed (served model may differ from the requested model). The footer
+  reflects per-turn deltas, not process-global accumulators.
+- **Footer: context occupancy segment**. The footer now includes an absolute
+  context-token count (`ctx Nk`) so you can see how full the context window
+  is without leaving the chat.
+- **Memory partition consumer-contract gate**. Each subconscious partition
+  declares which `.pending` signal kinds it consumes in its `contract:`
+  frontmatter. The memory-check delivery layer validates the declaration
+  before posting — an undeclared signal kind is withheld, so stale or
+  mismatched signals never land in the wrong partition inbox. Upgrading the
+  subconscious partition prompts to v0.5.6 activates the gate.
+
+### Fixes
+
+- **Skip lifecycle hardened**. A `Skip` decision now terminates the
+  streaming turn, silences all egress (including partial card updates), and
+  delivers any already-admitted turn content. The skip-rewind injection only
+  fires on genuine human turns, not on periodic cadence pings.
+- **Footer: per-turn cost delta**. Claude streaming sessions now report the
+  per-turn cost delta rather than the process-global cost accumulator,
+  fixing inflated cost figures on long-lived sessions.
+- **Daemon async fault isolation**. Unhandled async errors in one RPC
+  handler no longer crash the daemon process.
+- **`/model` validation is soft**. Passing an unrecognised model id now
+  returns a human-readable Markdown error instead of a bare JSON rejection.
+
+### Dependencies
+
+- `@anthropic-ai/claude-agent-sdk` 0.3.170 → 0.3.178
+- `esbuild` updated; `pnpm` overrides migrated to new format
+
 ## [v0.5.5] - 2026-06-09
 
 This release adds an opt-in Feishu card footer that surfaces each turn's
