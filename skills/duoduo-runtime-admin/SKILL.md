@@ -1,6 +1,6 @@
 ---
 name: duoduo-runtime-admin
-description: "Manage host-mode duoduo daemon-level settings and diagnostics. Use when the request involves: inspecting daemon status/config/logs, Claude/Codex runtime setup (auto-detected from v0.5.3: install codex + run `codex login`) or default runtime selection (ALADUO_DEFAULT_RUNTIME), Codex sandbox (ALADUO_CODEX_SANDBOX), log verbosity (ALADUO_LOG_LEVEL), telemetry persistence, cadence interval, other ALADUO_* env keys in ~/.config/duoduo/.env, running-daemon diagnostics, refreshing subconscious partition prompts from a published duoduo tag, or archiving / pruning the usage ledger (var/usage growing too large). Also trigger for Chinese: 启用 codex runtime, 设置默认 runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, 看看 duoduo daemon 配置, 查 daemon 日志, 升级潜意识, 刷新潜意识, 更新分区提示词, 同步 subconscious, refresh subconscious, update partition prompts, 归档 usage, 清理 usage, 缩 var/usage, 保留最近 N 周 usage. Also covers session management via the `duoduo session` CLI: listing/inspecting sessions, naming a session (alias), waking another session by name or key (notify, for cross-session orchestration), and archiving a session. Trigger for: name this session, list sessions, what sessions are running, wake/notify another session, rename a session, archive a session, 给会话起名, 把这个会话叫, 列出会话, 看看有哪些 session, 唤醒另一个会话, 通知某个 session, 归档会话, session 起别名, 跨会话编排. This skill does NOT handle channel-kind settings (Feishu/WeChat/ACP) — those live in duoduo-channel-admin."
+description: "Manage host-mode duoduo daemon-level settings, diagnostics, and the `duoduo session` CLI. Use for: daemon status/config/logs and running-daemon diagnostics; Claude/Codex runtime setup (codex auto-detected since v0.5.3: install codex + `codex login`) and default runtime (ALADUO_DEFAULT_RUNTIME); Codex sandbox (ALADUO_CODEX_SANDBOX); log level (ALADUO_LOG_LEVEL); telemetry persistence; cadence interval; other ALADUO_* keys in ~/.config/duoduo/.env; refreshing subconscious partition prompts from a published tag; archiving/pruning the usage ledger (var/usage). Session management: list/inspect sessions, name a session (alias), wake/notify another session by name or key (cross-session orchestration), archive a session. Chinese triggers: 启用 codex runtime, 设置默认 runtime, 打开 debug log, 关闭 telemetry, 调 cadence 频率, 查 daemon 配置/日志, 刷新潜意识, 清理 usage, 给会话起名, 列出会话, 唤醒/通知 session, 归档会话, 跨会话编排. Does NOT handle channel-kind settings (Feishu/WeChat/ACP) — those live in duoduo-channel-admin."
 ---
 
 # Duoduo Runtime Admin
@@ -104,7 +104,7 @@ Read [references/usage-archive.md](references/usage-archive.md) for
 the verified `find -mtime +N | xargs mv` recipe, recovery, and the
 race-window note.
 
-## Slash Commands (`/compact`, `/undo`)
+## Slash Commands (`/compact`, `/undo`, `/model`)
 
 Chat-level history controls landed in v0.5.2: `/compact` shrinks the
 context window in place, `/undo [N]` rolls back the last `N`
@@ -116,6 +116,11 @@ Read [references/slash-commands.md](references/slash-commands.md)
 for the runtime semantics (synchronous on Codex, deferred on Claude
 for `/undo`), troubleshooting when a command appears not to work,
 and what to tell a confused user.
+
+`/model` switches the model for a session at runtime without a restart.
+Read [references/model-switching.md](references/model-switching.md)
+for syntax, Claude vs Codex timing differences, and how to recover
+from an invalid model id.
 
 ## Session Management (`duoduo session …`)
 

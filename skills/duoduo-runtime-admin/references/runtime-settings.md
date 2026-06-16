@@ -78,6 +78,14 @@ These gate not-yet-default capabilities. All default OFF; set them in
   Git-recoverable (memory is a subdir of the kernel git repo), but it deletes
   files. Depends on `ALADUO_EXP_MEMORY_CHECK` also being on.
 
+The `duoduo memory` CLI subcommand gives operators and subconscious
+partitions direct access to the same lint primitives: `check` posts
+signals to partition inboxes on demand, individual `board-lint` /
+`entity-lint` / `node-lint` subcommands inspect one area at a time,
+and `reclaim` handles the destructive orphan-deletion lifecycle
+(requires `--tag`; supports `--dry-run`). See
+[memory-cli.md](memory-cli.md) for the full command reference.
+
 > **Version coupling — refresh the subconscious before enabling the MEMORY
 > flags.** The lint emits `.pending` notes whose format is parsed by the
 > subconscious partition prompts (pattern-tracker / memory-weaver). They are

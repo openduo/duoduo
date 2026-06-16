@@ -33,7 +33,7 @@ Do not run this for:
 - Editing partition prompts locally — that is a normal text edit
   plus `git commit` inside the kernel; no skill needed.
 
-## Partition Status (as of v0.5.3)
+## Partition Status (as of v0.5.6)
 
 The 6 partitions shipped under `bootstrap/subconscious/` are:
 

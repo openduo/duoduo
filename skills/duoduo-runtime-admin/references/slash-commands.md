@@ -111,6 +111,32 @@ fires once. If the user's first post-reset message is itself a slash
 command, the notice holds back to the next normal message (slash-prefixed
 input skips runtime-context injection by design).
 
+## `/model` (model switching)
+
+Switch the model for the current session without restarting anything.
+
+```
+/model                    # show current model + available models
+/model <model-id>         # switch to a specific model
+/model reset              # revert to the daemon's default model
+```
+
+- **Claude runtime**: the list of known models is populated after the
+  first message in a session. `/model` with no args before the first
+  message shows the current override but no list; send any message
+  first and then run `/model` again. A switch takes effect from the
+  next turn (the current streaming subprocess is not interrupted).
+- **Codex runtime**: no model list is available (`/model` with no args
+  shows the stored override only). A switch takes effect from the next
+  message via an internal thread fork — the model is applied without
+  visible disruption.
+- **Unknown model id**: accepted and stored. If the id is invalid, the
+  next turn will report the error. Run `/model reset` to recover.
+- **Validation**: a model id may not contain spaces. Any other string
+  is accepted; the runtime is the authority on whether it is valid.
+
+Read [model-switching.md](model-switching.md) for the full reference.
+
 ## When this skill does NOT apply
 
 - `/cancel` — interrupt-now semantics, bypasses the drain loop. Different
