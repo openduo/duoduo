@@ -3,6 +3,14 @@ schedule:
   enabled: true
   cooldown_ticks: 5
   max_duration_ms: 1800000
+contract:
+  partition: memory-weaver
+  consumes:
+    - entity-converge.v1
+    - sink.v1
+    - merge.v1
+    - orphan-islands.v1
+    - orphan-newborn.v1
 ---
 
 # memory-weaver

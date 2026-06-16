@@ -3,6 +3,12 @@ schedule:
   enabled: true
   cooldown_ticks: 7
   max_duration_ms: 900000
+contract:
+  partition: pattern-tracker
+  consumes:
+    - node-converge.v1
+    - revise.v1
+    - orphan-newborn.v1
 ---
 
 # Node Tracker

@@ -54,6 +54,8 @@ What I must not touch:
 - Spine event data — that's my unalterable history.
 - Lock files — those belong to the runtime.
 - Other partitions' CLAUDE.md — use inbox to coordinate instead.
+- `contract:` frontmatter in any partition's CLAUDE.md — machine-read
+  consumer declarations owned by the runtime, refreshed from upstream.
 
 ## Shared Memory
 
