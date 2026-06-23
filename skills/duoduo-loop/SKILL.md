@@ -51,14 +51,12 @@ judgment.
 
 > `/loop track developments on <topic> long-term; ping me daily only when there are real highlights, and hand the heavy reading to background helpers`
 
-A coordinator session keeps the running judgment across weeks; short-lived
-helper tasks do the heavy fetching and reading, and their results wake the
-coordinator. For each round, the coordinator keeps a concrete checklist for
-what counts as done, reads each helper's actual output as it arrives, and sends
-follow-up helpers for anything still missing. If a piece truly cannot be
-completed, the round is delivered with that gap called out instead of hidden;
-once the checklist is met or the gap is explicit, the single supervising
-heartbeat reports the round and goes dormant until the next wake. Trackers can
+A long-lived coordinator carries the running judgment across weeks while
+short-lived helpers do the heavy fetching and reading; the agent orchestrates
+that fan-out, the per-round quality checks, and the delivery for you. What you
+control in plain words is the shape: how often to hear from it, what counts as
+a real highlight, and that the heavy work goes to helpers. Each round arrives
+either complete or with any gap named rather than hidden, and the tracker can
 sleep indefinitely and wake again — see "pause" below.
 
 ## Choosing engine and model in plain words
@@ -104,10 +102,9 @@ spends checks where the action is and stops by itself.
 - **"It pings me too much"** — ask for signal-only delivery: "switch that
   loop to alerting me only on anomalies". Monitoring loops created through
   the plan default to signal-only; every-run reports are the opt-in.
-- **"It failed once and went quiet"** — a run that failed before it could
-  start keeps retrying on a cool-down by itself. A run that started and
-  then failed ends a one-shot loop with a failure notice; reply "bring it
-  back up" and the agent re-arms or recreates it.
+- **"It failed once and went quiet"** — transient startup failures retry on
+  their own; a loop that hit a real error tells you so and stops. Either way,
+  reply "bring it back up" and the agent re-arms or recreates it.
 - **"What did it do historically?"** — archived loops stay readable: ask
   "read me the archived record of <id>", or open the file under
   `<runtime_dir>/var/jobs/archive/`.

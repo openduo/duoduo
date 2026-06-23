@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.7] - 2026-06-23
+
+A maintenance release: a streaming-stability fix that stops background work
+from being lost, the `/loop` mechanism generalized into a reusable named-prompt
+registry, Codex image-generation delivery fixes, security patches, and the
+bundled Claude runtime updated.
+
+### Fixes
+
+- **Background subagents no longer killed by a self-notification**. When a
+  background task finished while a channel session was idle, its completion
+  notification could trigger an unnecessary restart of the session's runtime —
+  silently killing any other background tasks still running. These now reuse the
+  live runtime instead of restarting, so concurrent background work survives.
+- **Codex image generation delivered reliably (Codex 0.140+)**. Generated images
+  produced by Codex were sometimes silently dropped; they are now delivered
+  correctly, including the newer inline-image result shape.
+- **Inbound work no longer stalls on a dropped notification**. Fixed a case
+  where a never-admitted background result could leave a session's processing
+  loop parked until its next scheduled wake.
+- **Subagent narration no longer leaks into channel cards**. Internal subagent
+  streaming output is now marked as a side channel and dropped by channels
+  rather than rendered into the main reply.
+- **Picture-form heading match is case-insensitive** (memory maintenance).
+
+### Changes
+
+- **`/loop` generalized into a named-prompt-injection registry**. The recurring
+  `/loop` capability is now one entry in a general mechanism for named prompt
+  injections, with a self-describing `duoduo prompts` CLI to list what's
+  available. Adding a second named prompt no longer requires touching the core
+  prompt path.
+- **Bundled Claude runtime updated** to a newer Agent SDK build.
+
+### Security
+
+- Patched transitive dependency advisories (form-data, hono, protobufjs) via
+  pinned overrides.
+
+### Diagnostics
+
+- Added structured logging when a Feishu streaming card fails to close, to aid
+  diagnosis of the "read-but-no-reply-until-restart" symptom.
+
 ## [v0.5.6] - 2026-06-16
 
 This release ships `/model` session-level model switching, `/loop` as a
