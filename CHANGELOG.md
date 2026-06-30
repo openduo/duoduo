@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.8] - 2026-06-30
+
+This release makes mid-turn steering land faster and more reliably across both
+Claude and Codex runtimes, reworks background memory consolidation to run within
+a bounded time budget, adds a `duoduo session compact` command, and updates the
+bundled Claude runtime plus a security patch.
+
+### Highlights
+
+- **Mid-turn steering reaches the agent at the next tool boundary**. When you
+  send a follow-up message while the agent is already working, it is now picked
+  up at the next tool boundary instead of waiting for the whole turn to finish —
+  on both Claude and Codex runtimes. A completed background task can likewise
+  surface its result mid-turn rather than only after the turn ends.
+- **`duoduo session compact` — compact a channel session's context on demand**.
+  Queue a `/compact` for any channel session by key or name; it runs on that
+  session's next turn and the acknowledgement lands in the target session's
+  outbox. Useful for trimming a long-lived session's context before it hits its
+  own auto-compact threshold. Channel sessions only.
+- **Background memory consolidation now runs on a bounded time budget**. The
+  memory-weaver's nightly consolidation previously self-selected an unbounded
+  scan that could time out producing nothing. It now works one bounded day at a
+  time, picked by a program-computed gap check (`duoduo memory check` reports the
+  chosen gap), so each pass converges instead of stalling.
+
+### Changes
+
+- **Recurring follow-up messages no longer silently dropped**. Fixed a case
+  where a re-queued message could be lost when a stale watermark made the system
+  treat it as already handled.
+- **`duoduo` CLI surfaced as the runtime command center** in the agent's own
+  context, with `--help` output corrected.
+- **`vote` skill added** — a multi-perspective, clean-context adversarial
+  decision panel for high-stakes judgments, written to be host-neutral and
+  usable by any agent.
+- **Background continuations no longer break in-process tools**. Holding the
+  input stream open across background-subagent continuations stops job and
+  subconscious turns from hitting a "Stream closed" error.
+
+### Security
+
+- **Bundled Claude runtime updated** to Agent SDK 0.3.196 — includes an upstream
+  fix that prevents duplicate tool results in long-running streaming sessions.
+- **Patched js-yaml advisory** (GHSA-h67p-54hq-rp68, denial-of-service via
+  repeated YAML merge-key aliases) on both transitive paths via pinned overrides.
+
 ## [v0.5.7] - 2026-06-23
 
 A maintenance release: a streaming-stability fix that stops background work

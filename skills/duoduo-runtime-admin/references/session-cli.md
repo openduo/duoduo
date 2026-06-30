@@ -2,9 +2,10 @@
 
 Reference for the session-management subcommands. Load this when the user (or
 you, the agent, on the user's behalf) wants to **name a session**, **list /
-inspect sessions**, **wake another session by name**, or **archive a session**.
+inspect sessions**, **wake another session by name**, **compact a session's
+context**, or **archive a session**.
 
-All four are thin clients over the daemon's `/rpc`. They print **Markdown by
+All are thin clients over the daemon's `/rpc`. They print **Markdown by
 default** (human- and agent-readable) and accept **`--json`** for machine
 parsing. Exit codes: `0` success, `2` refused / usage error, `1` hard error.
 
@@ -91,6 +92,29 @@ something notifies a longer-lived research session to dig in, or an external
 script / webhook (`ssh host 'duoduo session notify "主控台" -m "…"'`) pokes a
 live session. It is the programmatic, by-name version of the in-session `Notify`
 tool.
+
+## `duoduo session compact`
+
+```
+duoduo session compact <target> [--source <label>] [--json|--plain]
+```
+
+Queues a `/compact` for a channel session — shrinks its resident conversation
+context the same way the in-chat `/compact` command does. `<target>` is a
+**session_key OR a display-name alias**.
+
+**Channel sessions only.** `job` / `system` / `subconscious` targets are refused
+— they run a fresh query per drain and hold no resident context to compact.
+
+**Fire-and-forget.** `/compact` is queued and runs on the session's **next
+turn**; this call returns no token delta. The compaction acknowledgement
+(`📦` / "Nothing to compact") lands in the **target** session's outbox, not in
+this command's output. So an agent running `compact` should not expect a
+post-compact token count back — it only gets "queued" confirmation.
+
+Use it to pre-empt context bloat on a long-lived channel session (e.g. an owner
+DM that has accumulated a large history) without waiting for the session to hit
+its own auto-compact threshold.
 
 ## `duoduo session archive`
 

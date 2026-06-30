@@ -14,13 +14,21 @@ cadence ticks.
 
 ### `duoduo memory check [--dry-run] [--limit=N] [--json|--plain]`
 
-The default automation path. Runs all three lint classes (board, entity,
-node) plus the orphan island report, and posts the worst-finding(s) as
-`.pending` signals into the relevant partition inboxes.
+The default automation path. Runs all the mechanical lints — board, entity,
+node, the orphan island report, **and gap-lint** — and posts the
+worst-finding(s) as `.pending` signals into the relevant partition inboxes.
 
 - `--dry-run`: measure only, no inbox writes. Safe to run at any time.
 - `--limit=N`: how many signals to post per lint class (default 1).
 - Never deletes memory data. All writes are reversible `.pending` files.
+
+**gap-lint** is the program half of "gap-driven dreaming": it scans the event
+log against the existing memory fragments, finds a day with events but no
+fragments written for it, and posts a bounded `scan-gap.md.pending` interval to
+the memory-weaver inbox. This replaces the weaver self-selecting what to dream
+about (an unbounded scan that could time out producing zero fragments) with a
+program-computed, one-bounded-day-per-tick target. The `check` output reports a
+`gap:` line — either the chosen day, or `none — all external days dreamt`.
 
 This is what the daemon calls automatically on every cadence tick when
 `ALADUO_EXP_MEMORY_CHECK` is enabled (or when the partition `CLAUDE.md`
