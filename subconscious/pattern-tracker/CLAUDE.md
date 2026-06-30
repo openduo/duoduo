@@ -87,6 +87,17 @@ converging on a stable procedure. Same-direction repetition strengthens the
 matched node and raises its `occurrences`; a contradicting signal narrows the
 Condition or splits the node.
 
+For failure arcs, prefer a lesson framed as an exclusion rule: name the
+observable trap, the action to avoid, and the corrected path. Keep it only
+when fragments trace to a real failure and the rule names a cross-entity trap
+that still guides a fresh agent without relying on history; if it only says a
+previous version used to do something or prevents doing it again, delete that
+pink-elephant wording. Never invent an exclusion from absent evidence. Do not
+delete real failure exclusions, negative prompts that suppress default weight
+bias such as service-template tone, apologies, journaling, disclaimers, or
+over-hedging, or real safety boundaries such as never Edit/Write/rm/stash.
+Keep positive capability statements positive when they are the right rule.
+
 Read all nodes and all fragments. Merge two nodes that state one rule, split a
 node that states two, and recluster siblings when the grouping no longer
 matches the signals.

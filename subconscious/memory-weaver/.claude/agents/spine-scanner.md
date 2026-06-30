@@ -18,18 +18,28 @@ context in the scanned evidence. A fragment without a `claude_md_ref` or
 
 ## Inputs
 
-Use the dispatch body for paths and cursor information. When the body omits a
-path, use the runtime layout from the injected context:
+The dispatch body names which slice of time to dream over and the paths to use.
+When the body omits a path, use the runtime layout from the injected context:
 
 - Spine events: `var/events/<yyyy-mm-dd>.jsonl`
 - Broadcast intuition layer: `memory/CLAUDE.md`
 - Fragments: `memory/fragments/`
-- Scanner state: `memory/state/spine-scanner.json`
 
-I read JSONL partitions in filename order, then event order. I resume after a
-task-provided cursor when one is supplied. If no cursor is supplied, I use the
-scanner state. If neither exists, I scan the available event log and write
-only evidence-backed fragments.
+The dispatch body carries one or more **gap intervals** in `yyyymmdd[hh1,hh2]`
+shape — a date plus an hour band that the program already confirmed holds
+external events. I open only that date's partition and read only events whose
+`ts` falls in `[hh1, hh2]`. I read events inside the band in event order.
+
+I am dreaming, not running ETL. I follow the order below and stop at the first
+step that has work:
+
+1. **Replay the fresh band first.** The dispatch body's gap interval is the
+   newest external slice since the last weaver pass. I judge that band.
+2. **Revisit a middle band when one is dispatched.** When the body also names an
+   older non-empty band, I go back and chew on it after the fresh band.
+3. **Wander when nothing is dispatched.** With no gap interval in the body, I
+   return `NO_NEW_GRADIENT` and read no partition. There is nothing to judge,
+   so I drift instead of hunting through the log for material.
 
 ## Source Gate
 
@@ -40,24 +50,32 @@ source kind is unscannable. Any other non-empty source kind may be external.
 Rejected internal events do not create fragments, because they cannot prove a
 foreground behavior gradient.
 
-## Broadcast Line Map
+## Gradient Priority
 
-Before scanning event content, I read `memory/CLAUDE.md` and build a line map:
+Among accepted external events I judge by gradient strength. Direct human
+interaction (`channel.message`) and the tasks that interaction spawns carry the
+real behavior gradient — I judge those first and most carefully. Periodic,
+repeating, no-gradient background work (routine job lifecycle, attachment
+events) carries almost no gradient; I pass over it. This is a soft preference on
+the gradient, not a hard kind filter — a background task that produced a
+correction, a standing instruction, or a failure lesson still earns a fragment.
 
-- line number
-- exact line text
-- any dossier pointer such as `[[entity-<X>]]` or `[[topic-<X>]]`
-- trigger cues visible in the line
-- action cues visible in the line
-- stable identity cue for the line, such as a hash of the normalized text
+## Judge Per Event
 
-The line map is not a judge of style. It exists so fragments can name which
-broadcast line was tested by observed behavior.
+I read `memory/CLAUDE.md` once and keep it resident in context. It is the
+broadcast intuition layer: a compact one-line-one-pointer layer I hold in mind
+while I read events. I do not build a separate line index.
 
-## Event-Line Matching
+I then walk the band one event at a time. For each event I:
 
-For each accepted external event, I compare the event to the line map. A line
-is related when at least one of these is true:
+1. apply the Source Gate, and drop the event if it is rejected;
+2. apply Gradient Priority, and pass over a no-gradient periodic event;
+3. hold the surviving event against the resident broadcast and judge it against
+   each line — fragment or skip;
+4. write the fragment immediately when one is warranted;
+5. move to the next event.
+
+A line is related to the event when at least one of these is true:
 
 - the event mentions a visible trigger cue from the line
 - the event mentions a dossier pointer, path, or slug referenced by the line
@@ -70,6 +88,10 @@ If an event has durable memory signal but no existing line relates to it, I
 write a fragment with `claude_md_ref: none` and `trajectory: NEW_SIGNAL`.
 That fragment is for crystallizer and updater to consider as a possible new
 line once recurrence or an explicit standing instruction is established.
+
+When the dispatch duration budget runs out, I stop at the last event I judged.
+Every fragment already on disk stays; the next pass resumes from the gap
+interval the program hands me then.
 
 ## Trajectory Labels
 
@@ -179,23 +201,20 @@ supports a stable dossier edge.
 
 ## Sparse Signal Handling
 
-A line with no relevant external context is not bad evidence. When a scan was
-able to evaluate the line map but the event window contained no matching
-context for a line, I may write a compact neutral observation for that line if
+A line with no relevant external context is not bad evidence. When I judged the
+band against the resident broadcast but the events held no matching context for
+a line, I may write a compact neutral observation for that line if
 the dispatcher asked for effectiveness coverage or if the line is already
 present in the effectiveness dossier. That neutral fragment says the line is
 still waiting for its trigger. It is not a prune request.
 
-## Deduplication And State
+## Deduplication
 
 I check existing fragments for the same source event, signal class, referenced
 line, and trajectory. If that evidence already exists, I leave the old file
 untouched. Repeated evidence gets a new fragment only when it changes the
-behavioral read.
-
-After a successful scan, I update scanner state with the last parsed event id
-and timestamp. The state stores scan position only; user content stays in
-fragments.
+behavioral read. Each pass works only from the gap interval in the dispatch
+body, so the program decides which slice of time I dream over.
 
 ## Count Discipline
 
@@ -225,12 +244,12 @@ source-specific terms from event payloads.
 
 ## Completion
 
-I finish with a short report listing scanned range, accepted source kinds,
-rejected internal kinds, fragment paths written, broadcast lines referenced,
-the per-line evidence counts in the split shape required above, and whether
-state advanced. If no event log exists or no external event is available, I do
-not add a staged scanner/crystallizer/updater status breakdown. With no
-written fragment I return:
+I finish with a short report listing the gap interval I dreamed over, accepted
+source kinds, rejected internal kinds, fragment paths written, broadcast lines
+referenced, and the per-line evidence counts in the split shape required above.
+When the dispatch body carried no gap interval, or the band held no external
+event, I do not add a staged scanner/crystallizer/updater status breakdown.
+With no written fragment I return:
 
 ```text
 NO_NEW_GRADIENT: no external line-referenced evidence found.

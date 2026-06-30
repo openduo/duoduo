@@ -46,6 +46,10 @@ Each surviving line must serve the next foreground turn with:
 - an activated skill, either self-contained, a dossier pointer such as
   `[[topic-<X>]]`, or a `Details: <path>` reference
 
+When the ledger licenses a real failure trajectory whose trap recurs across
+entities, prefer a compact lesson that names the reusable trap; it generalizes
+further than a positive success recipe glued to one entity.
+
 I keep, rewrite, or remove a line from its trajectory evidence; this check
 only flags which lines to examine.
 
