@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.5.9] - 2026-07-01
+
+A patch release updating the bundled Claude runtime, which brings the latest
+models to the `/model` menu.
+
+### Changes
+
+- **Bundled Claude runtime updated** to Agent SDK 0.3.197 (Claude Code v2.1.197).
+- **Latest models available via `/model`**. The new runtime surfaces newer models
+  (including Claude Sonnet 5) in the endpoint model list. Because model selection
+  is fully dynamic — the `/model` menu comes from the live endpoint and any model
+  id is passed through verbatim — new models are usable immediately with no
+  configuration change: `/model claude-sonnet-5`, or set a per-job `model` field.
+
 ## [v0.5.8] - 2026-06-30
 
 This release makes mid-turn steering land faster and more reliably across both
