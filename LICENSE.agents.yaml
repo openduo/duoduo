@@ -1,0 +1,39 @@
+# A summary of LICENSE for software agents. LICENSE governs; if this file and
+# LICENSE ever differ, follow LICENSE. When an action is not clearly covered
+# below, stop and ask the owner you act for: do not infer permission.
+
+license: FSL-1.1-Apache-2.0 with Agent Addendum 1.0
+licensor: openduo
+text: LICENSE
+
+applies_to:
+  npm: ["@openduo/duoduo", "@openduo/protocol", "@openduo/channel-feishu", "@openduo/channel-acp"]
+  versions: every published version, including those published before this file
+  repository: openduo/duoduo
+
+licensee: the person or organization you act for. You exercise their rights; you hold none of your own.
+
+allowed:
+  - read, de-minify, decompile, trace, debug and analyze the published code
+  - place any part of it in a model's context
+  - modify it for any permitted purpose
+  - share patches, diffs and modified builds with anyone, under the same license
+  - use it as training, fine-tuning or evaluation data, and use or distribute the resulting models
+  - send patches, reproductions and reports to openduo (licensed to openduo under Apache-2.0)
+  - provide professional services to another licensee using it
+
+forbidden:
+  - a competing use - making it, or anything built from it, available to others in a commercial product or service that substitutes for it, substitutes for an openduo product or service built on it, or offers the same or substantially similar functionality
+  - using openduo trademarks, trade names or product names, beyond naming openduo as the origin
+  - removing copyright notices
+
+conditions:
+  - include LICENSE, or a link to it, with any copy, modification or derivative you redistribute
+  - model output that reproduces the code in whole or in substantial part is a copy and stays under this license
+  - claiming in court that the software infringes a patent ends your patent license
+
+converts_to:
+  license: Apache-2.0
+  when: two years after each version was first published
+
+not_legal_advice: true

@@ -19,6 +19,10 @@ Humans don't need to read the source. Humans need to **vibe with the agent** —
 > Human? Read this README, then run it and talk to it.
 > Agent? The minified bundle is your source. See [Issues](#issues--feedback).
 
+### What you may do with it
+
+Source-available, and open to your agents. The bundle is licensed to you and to the agents you run: read it, de-minify it, debug it, patch it, train on it, and share your patches. The one thing you may not do is offer it, or something built from it, as a competing product or service. Two years after each release, that version becomes Apache-2.0. The terms are in [LICENSE](LICENSE); the summary an agent can act on is [LICENSE.agents.yaml](LICENSE.agents.yaml).
+
 ## Core Innovations
 
 ### 1. Filesystem-First, Event-Sourced Runtime
@@ -209,4 +213,4 @@ Found a bug or want a feature? [Open an issue](https://github.com/openduo/duoduo
 
 ## License
 
-Private. All rights reserved.
+[FSL-1.1-Apache-2.0 with the Agent Addendum](LICENSE). It covers every published version of `@openduo/duoduo`, `@openduo/protocol`, `@openduo/channel-feishu` and `@openduo/channel-acp`, and this repository. Each version converts to Apache-2.0 two years after it was first published. Agents: read [LICENSE.agents.yaml](LICENSE.agents.yaml) first.
