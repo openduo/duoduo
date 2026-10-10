@@ -13,12 +13,12 @@ the taps on the phone and the Passport.
 
 What exists before you start, and is not this skill's work:
 
-| Piece                                                    | Where it comes from                                                                                                                                                                                   |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A cerebellum the owner can reach: `wss://` URL and token | The owner runs one, or someone runs it for them. Self-hosting it and its model services: [openduo/ambient](https://github.com/openduo/ambient), `docs/requirements.md`, `docs/deploy.md`, `services/` |
-| The 多多随身 app on the owner's iPhone                   | [openduo/pocket-ios](https://github.com/openduo/pocket-ios)                                                                                                                                           |
-| A FoloToy AI Passport with pocket firmware (optional)    | [openduo/pocket-passport](https://github.com/openduo/pocket-passport), `docs/pocket/README.md`                                                                                                        |
-| Tailscale on this host and an account for the phone      | The owner's own tailnet                                                                                                                                                                               |
+| Piece                                                    | Where it comes from                                                                                                                                                                                                                                       |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A cerebellum the owner can reach: `wss://` URL and token | The owner runs one, or someone runs it for them. Self-hosting it and its model services: [openduo/ambient](https://github.com/openduo/ambient), `docs/requirements.md`, `docs/deploy.md`, `services/`                                                     |
+| The 多多随身 app on the owner's iPhone                   | TestFlight beta: apply with the [sign-up form](https://docs.google.com/forms/d/e/1FAIpQLSfIUllzEsHU18l3q_K1SBo8FBx-GztPhzUKotWpp74mYAIH-A/viewform); the invitation arrives by email. Source: [openduo/pocket-ios](https://github.com/openduo/pocket-ios) |
+| A FoloToy AI Passport with pocket firmware (optional)    | [openduo/pocket-passport](https://github.com/openduo/pocket-passport), `docs/pocket/README.md`                                                                                                                                                            |
+| Tailscale on this host and an account for the phone      | The owner's own tailnet                                                                                                                                                                                                                                   |
 
 ## General policy
 
@@ -66,6 +66,8 @@ On macOS, `tailscale` is the app's CLI by full path if it is not on `PATH`. Ask 
   [references/shared-cerebellum.md](references/shared-cerebellum.md) first: it covers accepting
   the shared node and getting the token without it passing through chat.
 - "Is 多多随身 installed on your iPhone, and is your Passport flashed with pocket firmware?"
+  If the app is not installed, give the owner the [TestFlight sign-up form](https://docs.google.com/forms/d/e/1FAIpQLSfIUllzEsHU18l3q_K1SBo8FBx-GztPhzUKotWpp74mYAIH-A/viewform) and continue
+  with the host steps while the invitation is pending.
 - "Which Tailscale account will the phone log in with?" It must be the same tailnet as this host.
 
 If the channel is installed and a room is served already, this is not a setup: go to
