@@ -226,7 +226,9 @@ external script — one entry point):
   `channel`/`job` targets are allowed; the subconscious/kernel plane is
   isolated and refused. A channel session nobody has read for an hour is
   refused with `no_consumer` (0.8.2+; the reply names sessions that do have a
-  reader; `--force` overrides).
+  reader; `--force` overrides). A notification tagged `<room> · <device>`
+  came from an ambient device with the `notify` scope (duoduo-ambient,
+  `references/devices.md`); revoke the device there to stop them.
 - `duoduo session wake <target> --in <duration> | --at <iso>` (new since
   v0.8.1) — schedule ONE future turn of that session, with the context read
   from stdin. Notify delivers now; wake delivers later. Same target rule as

@@ -1,8 +1,9 @@
 # Limiting the phone to the channel: a tailnet ACL draft
 
-The channel has no login. Everyone in the owner's tailnet who the tailnet policy lets reach this
-host's port 443 can open the room, read its history and talk to the agent. On a tailnet with the
-default allow-all policy that is every device and every user in it. Read this when the owner asks
+The channel admits only paired devices ([devices.md](devices.md)), but a pairing link or a token
+is a bearer credential: whoever holds one and can reach this host's port 443 is in. On a tailnet
+with the default allow-all policy that is every device and every user in it, so the policy decides
+how far a leaked link reaches. Read this when the owner asks
 who can reach the room, shares the tailnet with other people, or wants the phone limited to the
 channel.
 
@@ -46,18 +47,18 @@ policy purposes: rules on `autogroup:member` or the owner's user no longer match
 ```jsonc
 {
   "tagOwners": {
-    "tag:pocket": ["autogroup:admin"],
+    "tag:pocket": ["autogroup:admin"]
   },
   "hosts": {
-    "duoduo-channel": "<channel host tailnet IP>",
+    "duoduo-channel": "<channel host tailnet IP>"
   },
   "acls": [
     // The phone reaches the channel's HTTPS port and nothing else.
     {
       "action": "accept",
       "src": ["tag:pocket"],
-      "dst": ["duoduo-channel:443"],
-    },
+      "dst": ["duoduo-channel:443"]
+    }
     // Every other existing rule stays. A rule whose src is "*" also matches tag:pocket:
     // replace that "*" with what it is meant to cover (autogroup:member, the existing tags).
   ],
@@ -65,11 +66,11 @@ policy purposes: rules on `autogroup:member` or the owner's user no longer match
     {
       "src": "tag:pocket",
       "accept": ["duoduo-channel:443"],
-      "deny": ["duoduo-channel:22"],
+      "deny": ["duoduo-channel:22"]
     },
     // Plus one accept per kind of destination the owner reaches today (see below).
-    { "src": "<owner>@<domain>", "accept": ["duoduo-channel:22"] },
-  ],
+    { "src": "<owner>@<domain>", "accept": ["duoduo-channel:22"] }
+  ]
 }
 ```
 
@@ -84,19 +85,19 @@ No tag; the phone stays the owner's device. Read its address from the admin cons
 {
   "hosts": {
     "duoduo-pocket": "<phone node tailnet IP>",
-    "duoduo-channel": "<channel host tailnet IP>",
+    "duoduo-channel": "<channel host tailnet IP>"
   },
   "acls": [
     {
       "action": "accept",
       "src": ["duoduo-pocket"],
-      "dst": ["duoduo-channel:443"],
-    },
+      "dst": ["duoduo-channel:443"]
+    }
     // Rules that match the owner's user (autogroup:member, "*", the user) also match the phone.
     // Keep the phone limited only if those rules are narrowed for it, which a user-based rule
     // cannot express. Prefer Draft A when the goal is "the phone reaches only the channel".
   ],
-  "tests": [{ "src": "duoduo-pocket", "accept": ["duoduo-channel:443"] }],
+  "tests": [{ "src": "duoduo-pocket", "accept": ["duoduo-channel:443"] }]
 }
 ```
 
@@ -122,7 +123,7 @@ After they save, check:
 tailscale ping <an existing peer>          # still answers from this host
 ```
 
-and the owner reopens the app: 检查连接 / Check Connection must still pass all three checks.
+and the owner reopens the app: it must show 在线 / Online and answer a typed message.
 For Draft A, the owner also checks that from the phone nothing else is reachable that was before
 (for example a NAS page), if they want the first goal proven.
 
@@ -131,10 +132,10 @@ back (restore the backup, or remove the added rule, tag and `hosts` entries).
 
 ## What is verified
 
-| Fact                                                               | Status                                                                         |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| The app's node is named `duoduo-pocket` and advertises no tag      | Verified in the app's source                                                   |
-| The channel has no authentication and relies on tailnet membership | Verified in the channel's and app's security docs                              |
-| Tailscale policy syntax (`tagOwners`, `hosts`, `acls`, `tests`)    | Tailscale's documented policy format; check the console's validator            |
-| Draft A and Draft B on a real tailnet with the app                 | Not measured. The owner's console validator and the checks above are the proof |
-| A tagged device no longer matches user-based rules                 | Tailscale's documented behaviour; not measured here                            |
+| Fact                                                             | Status                                                                         |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| The app's node is named `duoduo-pocket` and advertises no tag    | Verified in the app's source                                                   |
+| The channel admits paired devices only; tokens are bearer tokens | Verified in the channel's source and deploy docs                               |
+| Tailscale policy syntax (`tagOwners`, `hosts`, `acls`, `tests`)  | Tailscale's documented policy format; check the console's validator            |
+| Draft A and Draft B on a real tailnet with the app               | Not measured. The owner's console validator and the checks above are the proof |
+| A tagged device no longer matches user-based rules               | Tailscale's documented behaviour; not measured here                            |
