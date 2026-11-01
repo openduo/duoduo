@@ -1,6 +1,6 @@
 ---
 name: duoduo-channel-admin
-description: "Install, start, stop, inspect, reset, and configure duoduo host-mode channels. Use when the request involves: channel lifecycle (install/list/start/stop/status/logs), Feishu setup card or /setup command, Feishu owner DM / FEISHU_BOT_OWNER configuration, the owner-DM rebind refusal, a second Feishu or Lark app (--instance), a chat forwarded to an existing session (forward / send), stale card error, resetting a bound Feishu chat, ACP editor integration, channel descriptor editing (kind vs instance). Also trigger for Chinese: 拉起 feishu 通道, 配置 channel 提示词, 改 stdio 的 workspace, 查看 channel 状态, 飞书机器人怎么配, 设置 owner, 清除 session, 重置 channel, 加一个 Lark 应用, 第二个飞书应用, 把群转给已有会话, 回复转发的群."
+description: "Install, start, stop, inspect, reset, and configure duoduo host-mode channels. Use when the request involves: channel lifecycle (install/list/start/stop/status/logs), Feishu setup card or /setup command, Feishu owner DM / FEISHU_BOT_OWNER configuration, the owner-DM rebind refusal, a second Feishu or Lark app (--instance), a chat forwarded to an existing session (forward / send), asking someone in a Feishu chat to choose, approve or answer (ask, question card, approval card), stale card error, resetting a bound Feishu chat, ACP editor integration, channel descriptor editing (kind vs instance). Also trigger for Chinese: 拉起 feishu 通道, 配置 channel 提示词, 改 stdio 的 workspace, 查看 channel 状态, 飞书机器人怎么配, 设置 owner, 清除 session, 重置 channel, 加一个 Lark 应用, 第二个飞书应用, 把群转给已有会话, 回复转发的群, 发提问卡片, 让群里的人选择, 审批卡片."
 ---
 
 # Duoduo Channel Admin
@@ -46,6 +46,10 @@ matches the request to avoid polluting context with unrelated detail.
   request reached the main session, or a session must answer a forwarded
   message → read [references/feishu-forward.md](references/feishu-forward.md):
   `forward`, `send`, who may run them, the cold-start flow.
+- **Asking someone in a chat** — a session needs a person in a forwarded chat
+  or in its own chat to choose, approve or answer before it can go on → the
+  same reference, section "Ask someone in a chat": `ask`, `--who`, approvals,
+  limits.
 - **ACP** (编辑器) → read [references/acp.md](references/acp.md).
   Covers install, editor integration semantics.
 
