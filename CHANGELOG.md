@@ -2,6 +2,61 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.8.8] - 2026-11-05
+
+A session can now ask someone in a Feishu chat a question and get the answer
+later, and the main session hands long work to jobs so the next person who
+writes to it is not kept waiting.
+
+Upgrading means reinstalling core (0.8.8) and the Feishu channel (0.8.8), then
+restarting the daemon and every Feishu instance. Protocol (0.8.6) and the ACP
+channel (0.8.3) are unchanged. The bundled agent SDK moves to `^0.3.318`
+(Claude Code 2.1.318); pi moves to 1.5.0.
+
+Behaviour changes to know about:
+
+- **The main session dispatches long work.** Work that would keep main busy
+  for minutes — a build, a multi-step change, research — goes to a job that
+  notifies main with the result; quick work stays in main. For a request from
+  a forwarded chat, main leaves the message's received mark in place until the
+  result is back, then answers it with `send --reply-to`. The first turn after
+  the upgrade pays the one-time cost of a role-text change.
+- **Subagent effort (Claude Code 2.1.317).** A subagent running on a model
+  other than its session's uses that model's own effort setting or its
+  default, not the session's. `CLAUDE_CODE_SUBAGENT_EFFORT` sets it.
+- **pi 1.5.0 tightened its system prompt.** The tools section pi sessions keep
+  in override mode now ends with "Additional tools may be available."
+
+### Features
+
+- **Ask a chat with a question card.** `duoduo channel feishu ask --chat
+  <chat_id> --who <@name|owner|anyone|ou_…> --question "<text>" --context
+  "<text>|-"` posts a card with buttons (`--option`, once per choice), a
+  multi-select (`--multi`), a text field (`--text <label>`), or a mix. The
+  first valid answer replaces the card for everyone with the question, every
+  option offered (the chosen ones marked) and, in a group, who answered. The
+  answer returns to the asking session as a notification carrying its
+  `--context`, so the session ends its turn after asking. A card for the
+  owner, or for a name that matches nobody or several people, goes to the
+  owner's direct messages with a line naming the session and the chat. Cards
+  expire after 14 days, or sooner with `--expires`. Only a chat's forward
+  target or the chat's own session can ask there; `ask` from a terminal is
+  refused. `ask --help` explains the rest. Card text follows
+  `FEISHU_LOCALE` (Chinese or English).
+
+### Security
+
+- **Dependency advisories cleared.** follow-redirects moves to 1.16.2
+  (GHSA-mrwp-f3q8-3g9p, high; reached through the Feishu SDK's HTTP client).
+  pi 1.5.0 pins undici 8.12.3, so the undici 8.10.2 copy noted in v0.8.7 is
+  gone.
+
+### Updates
+
+- **Agent SDK 0.3.318** (Claude Code 2.1.318). See the behaviour changes above.
+- **pi 1.5.0.** Tool arguments are validated by pi's own schema library; the
+  new sibling package `@earendil-works/pi-schema` is pinned with the rest.
+
 ## [v0.8.7] - 2026-10-30
 
 One duoduo, several faces: a host now has a main session where everything
