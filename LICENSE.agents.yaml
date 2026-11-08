@@ -7,7 +7,14 @@ licensor: openduo
 text: LICENSE
 
 applies_to:
-  npm: ["@openduo/duoduo", "@openduo/protocol", "@openduo/channel-feishu", "@openduo/channel-acp"]
+  npm:
+    [
+      "@openduo/duoduo",
+      "@openduo/protocol",
+      "@openduo/channel-feishu",
+      "@openduo/channel-acp",
+      "@openduo/duoduo-launcher-darwin"
+    ]
   versions: every published version, including those published before this file
   repository: openduo/duoduo
 
