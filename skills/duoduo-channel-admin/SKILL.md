@@ -46,6 +46,10 @@ matches the request to avoid polluting context with unrelated detail.
   request reached the main session, or a session must answer a forwarded
   message → read [references/feishu-forward.md](references/feishu-forward.md):
   `forward`, `send`, who may run them, the cold-start flow.
+- **Messaging another bot, or mentioning someone** — a session must answer a
+  bot in its own chat or @ a person so they are notified → the same
+  reference, section "Message another bot or mention someone in your own
+  chat": `send --at`, a raw `--reply-to`.
 - **Asking someone in a chat** — a session needs a person in a forwarded chat
   or in its own chat to choose, approve or answer before it can go on → the
   same reference, section "Ask someone in a chat": `ask`, `--who`, approvals,

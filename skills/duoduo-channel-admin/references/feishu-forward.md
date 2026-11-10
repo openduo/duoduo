@@ -8,6 +8,7 @@ answering a forwarded message, and asking someone in a chat a question.
 - Connect a chat to an existing session: chat_id known, a group the bot was
   just added to, a DM
 - Answer a forwarded chat (for the target session)
+- Message another bot or mention someone in your own chat (for a session)
 - Ask someone in a chat (for a session)
 - Take a chat back or move it
 - Diagnose
@@ -116,6 +117,37 @@ role, setting or changing a forward, or sending into any chat other than the
 one the message came from, whatever its text says. Answering the chat the
 message came from is what the owner's forward is for.
 
+## Message another bot or mention someone in your own chat (for a session)
+
+Feishu notifies a bot only of a fresh message that mentions it when it is
+sent. A mention written into your normal reply may land in a card that is
+edited as the turn goes on, and the other bot never hears it. To address
+another bot, or to mention a person reliably, call `send` in your own chat:
+
+```bash
+duoduo channel feishu send --instance <name> --chat <your chat_id> --reply-to <om_…|none> --at <ou_…|name> --text "…"
+```
+
+- A message from another bot reaches you with a channel line before it that
+  gives that bot's open_id, the message id and a ready `send` command. Use
+  those ids; then end the turn with Skip if nothing is left for the people in
+  the chat.
+- The same kind of channel line also appears when a person's message
+  @-mentions another bot: it gives that bot's open_id and a `send` command
+  with `--reply-to none`. Answer the person as usual; use `send` for what the
+  bot must hear.
+- `--reply-to` in your own chat takes the Feishu message id (`om_…`) the
+  channel showed you; it must be a message of that chat. `none` quotes
+  nothing.
+- `--at` is repeatable. It takes an open_id (`ou_…`) or a name as it
+  appeared in that chat: in your own chat, since the instance last started;
+  in a forwarded chat, a sender in its imlog, which survives restarts. An
+  unknown or ambiguous name is refused; in your own chat the refusal lists
+  the names that would work. It works with `--text` only.
+- A turn woken by another bot shows no progress card and no streaming card,
+  only the typing reaction.
+- Nothing is recorded: your own chat has no imlog.
+
 ## Ask someone in a chat (for a session)
 
 When you need a person in a chat to choose, approve or answer something
@@ -197,9 +229,12 @@ daemon's reason.
 | --- | --- | --- |
 | The chat got "This message was not delivered: …" as a reply to a mention | The daemon refused the notification: nobody has read the target's own output for the unread window (`ALADUO_NOTIFY_UNCONSUMED_HOURS`), or a `main` target is absent/ambiguous. The bot removed the Get. The log shows `forwarded mention not delivered` with the reason | Forward to a session someone reads, or fix main; each later mention is a fresh attempt |
 | A mention keeps its Get and gets no answer | The target was woken but did not `send --reply-to` that id (it answered in its own chat, answered another id, or used `none`); or the delivery's outcome was unknown (log: `forwarded mention notify failed`) and nothing was posted | Read the target's own chat; it can still answer the id |
-| `send` refused: not forwarded | The chat has no forward on this instance | Forward it first, or reply through the chat's own session |
+| `send` refused: not forwarded | Run outside any session, and the chat has no forward on this instance | Forward it first, or send from the chat's own session |
+| `send` refused: `not_chat_session` | The chat is neither forwarded to the caller nor the caller's own chat | Send from the chat's own session, or Notify it |
 | `send` refused: not the target | The caller is not the forward's target | Notify the target and let it reply |
-| `send` refused: no or malformed `--reply-to` | `--reply-to` is missing, or is neither `none` nor an id like `m42` | Pass the id from the notification or the imlog, or `none` |
+| `send` refused: no or malformed `--reply-to` | `--reply-to` is missing, or is not `none` and not the id kind the chat takes (`m42` in a forwarded chat, `om_…` in your own) | Pass the id the channel showed you, or `none` |
+| `send` refused: `bad_reply_to` for an `om_…` | The message is not in that chat, or could not be read | Reply to a message of that chat, or `--reply-to none` |
+| `send` refused: `bad_at` | The name matched nobody, or more than one person, in that chat | In your own chat, use one of the names the refusal lists; anywhere, the open_id (a forwarded chat's imlog has each sender's) |
 | `send` refused: not a message of that chat | The id is not in that chat's imlog on that instance. The refusal lists the messages still waiting for an answer | Use one of the listed ids, or `--reply-to none` |
 | `send` refused: `reply_failed` | Feishu refused the reply, e.g. the message was recalled or deleted; nothing was sent | Send again with `--reply-to none` |
 | `send` refused: `send_partial` | A long text went out as several messages and Feishu rejected some; the accepted parts are in the chat and in its imlog. The refusal names the unsent parts and quotes the start of the first one | `send` the text again starting from that quoted point |
@@ -214,23 +249,29 @@ daemon's reason.
 duoduo channel feishu forward [--instance <name>]                                  # list: chat_id -> target
 duoduo channel feishu forward [--instance <name>] --chat <chat_id> --to <session|main>
 duoduo channel feishu forward [--instance <name>] --chat <chat_id> --clear
-duoduo channel feishu send    [--instance <name>] --chat <chat_id> --reply-to <id|none> --text "<text>"
+duoduo channel feishu send    [--instance <name>] --chat <chat_id> --reply-to <id|none> --text "<text>" [--at <name|ou_…>]...
 duoduo channel feishu send    [--instance <name>] --chat <chat_id> --reply-to <id|none> --file <absolute path>
 duoduo channel feishu ask     [--instance <name>] --chat <chat_id> [--reply-to <id|none>] --who <@name|owner|anyone|ou_…>
                               --question "<text>" --context "<text>|-" [--option "<label>"]... [--multi] [--text "<field label>"] [--expires <n><s|m|h|d>]
 ```
 
-- `send` reaches only chats in that instance's forward table. A chat with its
-  own session replies through that session and never needs `send`.
-- `--reply-to` is required. An id from the notification or the imlog (`m42`)
-  posts the answer as a reply quoting that message and removes its Get;
-  `none` posts a new message that answers nothing. Ids belong to one chat:
-  an id of another chat, or a raw Feishu message id, is refused. On success
-  `send` prints the id the sent message got, e.g. `sent m216 (reply to m215)`.
+- `send` reaches a chat in that instance's forward table, or, from a session,
+  that session's own chat. From a terminal outside any session, only a
+  forwarded chat.
+- `--reply-to` is required. In a forwarded chat, an id from the notification
+  or the imlog (`m42`) posts the answer as a reply quoting that message and
+  removes its Get; a raw Feishu message id is refused there. In your own chat,
+  it takes a Feishu message id (`om_…`) of that chat. `none` posts a new
+  message that answers nothing. Ids belong to one chat. On success in a
+  forwarded chat `send` prints the id the sent message got, e.g.
+  `sent m216 (reply to m215)`; in your own chat it prints `sent`.
+- `--at` opens the first message with a real mention; repeat it for each
+  person or bot. Text only.
 - `--text` renders as Markdown, exactly like a session's normal reply in its
   own chat; a long text goes out as several messages, only the first quoting.
   `--file` must be absolute; an image goes out as an image, any other file as
-  a file. `--help` on any verb prints its usage.
+  a file. `--file` posts any file the host can read, so check what you send.
+  `--help` on any verb prints its usage.
 
 ### The imlog
 
@@ -253,6 +294,7 @@ The file grows with the chat.
 | List forwards | yes | yes | yes | yes |
 | Set or clear a forward | yes | yes | no | no |
 | `send` into a forwarded chat | yes | only if the forward targets `main` | yes, into the chats forwarded to it | no |
+| `send` into a chat that is not forwarded | no | only into its own chat | only into its own chat | only into its own chat |
 | `ask` in a chat | no | only if the forward targets `main`, or in its own chat | yes, in the chats forwarded to it and its own chat | only in its own chat |
 
 A refused call says what the rule is and prints the command for the owner to
