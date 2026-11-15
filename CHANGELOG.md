@@ -2,6 +2,111 @@
 
 All notable changes to this project will be documented here.
 
+## [v0.8.9] - 2026-11-15
+
+Bots in the same Feishu group can now address each other and get an answer,
+and on macOS the daemon runs behind a signed DuoDuo app, so privacy prompts
+and Full Disk Access name DuoDuo instead of `node`.
+
+Upgrading means reinstalling core (0.8.9), protocol (0.8.9) and the Feishu
+channel (0.8.9), then restarting the daemon and every Feishu instance. The
+ACP channel (0.8.3) is unchanged. On macOS the new optional package
+`@openduo/duoduo-launcher-darwin` (0.1.0) installs with core. The bundled
+agent SDK moves to `^0.3.325` (Claude Code 2.1.325); pi moves to 1.5.2.
+
+Behaviour changes to know about:
+
+- **Feishu access policies fail closed.** A missing `FEISHU_DM_POLICY` or
+  `FEISHU_GROUP_POLICY` now means `allowlist`, not `open`. In a group, only
+  chats in `FEISHU_ALLOW_GROUPS` and senders in `FEISHU_ALLOW_FROM` get
+  answers, so a group that worked without either key goes silent after the
+  upgrade. To keep the old behaviour, write `FEISHU_GROUP_POLICY=open` (and
+  `FEISHU_DM_POLICY=open` if direct messages were open too) before
+  restarting. A named instance reads only its own `feishu.<name>.env`, so
+  check each one. `FEISHU_BOT_OWNER` is always admitted in direct messages,
+  so an owner-only configuration keeps working. At startup the gateway logs
+  the effective policy and warns on `open`, on `pairing` (which behaves as
+  open), on an empty allowlist and on an invalid value.
+- **On macOS the restart moves the daemon behind DuoDuo.** With the launcher
+  package installed, `duoduo upgrade` or `duoduo daemon restart` reloads
+  launchd, and privacy prompts name **DuoDuo**. A grant made to `node` no
+  longer applies to duoduo: an owner who had given `node` Full Disk Access
+  and still wants it grants DuoDuo once. Such a grant covers any code
+  running as that macOS user. Without the package nothing changes.
+- **Claude Code telemetry and error reporting are off.** Every Claude process
+  duoduo starts (foreground, jobs, subconscious) gets
+  `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, `DISABLE_TELEMETRY` and
+  `DISABLE_ERROR_REPORTING` set to `1`. Hosts on an official Claude login
+  previously ran with telemetry on. An `env` entry for the same key in a
+  Claude settings file the session loads still wins.
+- **Unrecognized model ids get a 1M context window** (Claude Code 2.1.323;
+  it was 200K). A non-Anthropic model run on the Claude runtime with no
+  `claude.model_profiles` entry is now assumed to have 1M tokens; if its
+  real window is smaller, turns can fail at the limit before compaction
+  runs. Add a profile with the real window. Profiled models are unaffected.
+- **pi caches warm while idle** (pi 1.5.1 changed the default to `idle`).
+  Between runs, pi may re-send the last request to keep the provider's
+  cache warm. duoduo keeps that default; the usage of those refresh
+  requests does not reach the usage ledger.
+
+### Features
+
+- **Bots reach each other in a Feishu group.** Feishu tells a bot only about
+  a fresh message that mentions it, so a mention inside a streamed answer
+  never reached the other bot. A session can now post into its own chat
+  with `duoduo channel feishu send --chat <chat_id> --reply-to <id|none>
+  --text "<t>" --at <name|ou_…>` (`--at` repeats, and works with `--text`
+  only). A turn woken by another bot's message shows no process card and no
+  streamed text; the session is told to answer with `send` and Skip. A
+  person's message that mentions another bot carries the same hint, and that
+  turn replies as usual.
+- **Signed DuoDuo.app launcher on macOS.** launchd starts the daemon through
+  a Developer ID signed and notarized DuoDuo app in front of `node`.
+  `duoduo daemon status` prints a `launcher:` line with the launcher path, or
+  `none`. `daemon restart` now reloads launchd when the launch arguments
+  differ from what `daemon start` would write (for example after an upgrade
+  or a `brew upgrade node` that removed the old binary) and keeps the
+  daemon's environment as it was; otherwise it restarts in place as before.
+  `daemon start` works over SSH, as long as someone is logged in to the
+  Mac's desktop.
+- **Share the dashboard remotely.** `duoduo dashboard share [--ttl <min>]`
+  opens a temporary tunnel through tailcat to the daemon's read-only port and
+  prints a browser link plus Feishu and Lark sidebar links; `--status` and
+  `--stop` check or end it. A share lasts 60 minutes by default, a new share
+  replaces the old one, and a daemon restart ends it. The link carries its
+  own key: send it only to the owner. Requires tailcat v0.7.0 on the host.
+- **Dashboard activity lanes.** The signal strip is replaced by one lane per
+  actor that moved in the last 15 minutes or hour, an inventory line with a
+  drawer listing everything, and an event stream that pairs each tool call
+  with its result, so failed tool calls are visible. Jobs show their next
+  run time. Times are in the viewer's local time zone; the theme has a
+  light, dark and system setting.
+
+### Bug Fixes
+
+- **Codex is detected by its binary alone.** codex-cli 0.166.0 changed the
+  wording of `codex login status` for API-key logins, so such hosts saw codex
+  as unavailable for the daemon's whole life and every Codex turn was
+  refused. A codex that is installed counts as available; one that is not
+  signed in reports its own authentication error on the first turn.
+
+### Security
+
+- **Dependency advisories cleared.** A lockfile refresh within the MCP SDK's
+  own ranges moves hono to 4.13.18 and @hono/node-server to 2.1.8, clearing
+  six moderate and one low advisory (GHSA-qv5m-9pm6-hqp3,
+  GHSA-jpvv-r467-5p4w, GHSA-4m76-xfj5-7975, GHSA-h7mg-cq63-vhpq,
+  GHSA-46wx-v44x-9hh2, GHSA-4h7h-rv7c-7m2v, GHSA-3gg2-335m-rxc6). No
+  override is added.
+
+### Updates
+
+- **Agent SDK 0.3.325** (Claude Code 2.1.325). See the behaviour changes
+  above.
+- **pi 1.5.2**, with its sibling packages pinned to match.
+- **Feishu SDK 1.76.0**, plus patch and minor refreshes of fastify,
+  @fastify/websocket, undici, cron-parser and ws.
+
 ## [v0.8.8] - 2026-11-05
 
 A session can now ask someone in a Feishu chat a question and get the answer
