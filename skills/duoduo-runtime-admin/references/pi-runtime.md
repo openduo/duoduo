@@ -309,7 +309,7 @@ not among them — the daemon cannot tell they changed.
 | `/model`, `/effort` | next message |
 | `settings.json` behaviour + resource keys | next message |
 | `settings.json` `defaultModel` / `defaultProvider` / `enabledModels` / proxy / TUI keys | **never** — duoduo drops them; a restart does not help. Use `/model`. |
-| `settings.json` `cacheWarming` | **never** — duoduo keeps pi's default (`streaming`) and drops the key. |
+| `settings.json` `cacheWarming` | **never** — duoduo keeps pi's default (`idle` since pi 1.5.1: between runs pi may re-send the last request to keep the provider cache warm) and drops the key. |
 | `pi.extensions` / `pi.skills` (below) | next message |
 | **an extension**, `models.json`, `auth.json`, a `/login`, project trust | **next worker build** |
 

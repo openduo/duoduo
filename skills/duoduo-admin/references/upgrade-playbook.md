@@ -637,6 +637,47 @@ Two changes need no action, only knowing:
   settings changes; own pi extensions that handle `before_agent_start`
   should check pi 1.2.0's release notes.
 
+## Changes landing in v0.8.9
+
+**Check Feishu access policy before upgrading.** A missing
+`FEISHU_DM_POLICY` or `FEISHU_GROUP_POLICY` now means `allowlist`, not
+`open`. `FEISHU_BOT_OWNER` is always admitted in direct messages. In a
+group, only chats in `FEISHU_ALLOW_GROUPS` and senders in
+`FEISHU_ALLOW_FROM` get answers, unless `FEISHU_GROUP_POLICY=open` is
+written explicitly. A named instance reads
+only its own `feishu.<name>.env`, so check each one. Step 2's branch rules
+already test for this; the gateway also logs the effective policy at
+startup.
+
+**On macOS, the restart moves the daemon behind the DuoDuo app.** When the
+optional launcher package is installed, `duoduo upgrade` (or
+`daemon restart`) reloads launchd, and privacy prompts name **DuoDuo**
+instead of `node`. Grants made to `node` no longer apply to duoduo. An
+owner who had granted `node` Full Disk Access and still wants it grants
+DuoDuo once: `duoduo-runtime-admin` → "Full Disk Access on macOS".
+`duoduo daemon status` shows the `launcher:` line. `daemon start` now
+works over SSH; it fails only when nobody is logged in to the Mac's
+desktop. Rollback: an older `duoduo` writes its old launchd entry on its
+next start.
+
+Three changes need no action, only knowing:
+
+- **Claude Code telemetry and error reporting are off** in every Claude
+  process duoduo starts (foreground, jobs, subconscious).
+  `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, `DISABLE_TELEMETRY` and
+  `DISABLE_ERROR_REPORTING` are set to `1` in the spawn environment. An
+  `env` entry for the same key in a Claude settings file the session loads
+  still wins.
+- **An unrecognized model id now gets a 1M context window** in the bundled
+  Claude Code (it was 200K). This matters for a non-Anthropic model run on
+  the Claude runtime with no `claude.model_profiles` entry: if its real
+  window is smaller, turns can fail at the limit before compaction runs.
+  Add a profile with the real window (`duoduo-runtime-admin` →
+  `references/model-context-profiles.md`). Profiled models are unaffected.
+- **The bundled pi moves to 1.5.2, and its cache warming default is now
+  `idle`.** Between runs, pi may re-send the last request to keep the
+  provider's cache warm. duoduo keeps that default.
+
 ## Stdio output behavior in v0.5.3
 
 The stdio terminal UI buffers assistant text more cleanly around status

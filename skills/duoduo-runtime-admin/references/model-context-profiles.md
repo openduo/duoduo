@@ -151,7 +151,8 @@ Walk down; stop at the first hit.
    `env: { "ANTHROPIC_MODEL": … }` block *before* the top-level `"model"` key, so
    check both.
 6. The model is genuinely unprofiled — the `/model` ack says "No context profile
-   is known". That's pass-through, not an error; offer Playbook 1. When a profile
+   is known". That's pass-through, not an error, but the engine then assumes
+   a 1M window (see "No profile means 1M" below); offer Playbook 1. When a profile
    *did* apply, the same slot states the window instead
    (`Context window 1,000,000 tokens (global profile, routed endpoint).`), which
    is the fastest confirmation that a write took effect on a live session.
@@ -198,8 +199,10 @@ low — raise and repeat.
 - **Waiting for background work**: "If the session has helpers running, send the
   model switch after they finish — the switch itself never interrupts the current
   answer, so you control the timing."
-- **Unprofiled**: "It still works exactly as before — duoduo is just telling you
-  it can't vouch for the backend's real limit."
+- **Unprofiled**: "It still answers, but the engine assumes a 1M window for a
+  model it doesn't know. If this model's real window is smaller, long
+  conversations can hit the limit before cleanup runs. Let's add its real
+  number."
 
 ## How the numbers go wrong (why evidence discipline exists)
 
@@ -214,6 +217,12 @@ low — raise and repeat.
   actually call*, not to the model name.
 - **The asymmetry**: too small merely wastes context; too large breaks turns.
   When in doubt, take the smaller number and note why.
+- **No profile means 1M**: the bundled Claude Code (2.1.323+, duoduo 0.8.9+)
+  assumes a 1M window for any model id it does not recognize (older builds
+  assumed 200K). An unprofiled non-Anthropic model with a smaller real window
+  is therefore oversized by default and can fail every turn at the limit
+  before compaction runs. On a host that runs such models on the Claude
+  runtime, profile each one.
 
 ### Reference table — starting points, not settled facts
 
