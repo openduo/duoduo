@@ -47,6 +47,13 @@ from:
 The standard manual path is the Feishu developer console:
 `https://open.feishu.cn/app`.
 
+For Lark (the international version), create the app in the Lark
+developer console, `https://open.larksuite.com/app`, use that app's own
+`App ID` and `App Secret`, and add `FEISHU_DOMAIN=lark` to the same
+`~/.config/duoduo/.env`. Without it the channel talks to the China
+endpoints and a Lark app's credentials are refused. China Feishu needs
+no `FEISHU_DOMAIN` line.
+
 Prefer that the owner writes the secret into the file from their own
 terminal (the handover in [feishu-second-app.md](feishu-second-app.md)
 works for `.env` too). If the user pastes credentials directly in chat,
